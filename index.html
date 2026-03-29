@@ -112,18 +112,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 .nav-btn{
   flex:1;border:none;background:transparent;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:3px;cursor:pointer;
-  padding:8px 2px 0;
+  gap:2px;cursor:pointer;
+  padding:6px 1px 0;
   position:relative;
-  /* ★ minimum tap target */
+  /* 6 tabs: keep min tap target */
   min-height:44px;
 }
-.nav-btn .n-icon{font-size:1.2rem;transition:transform .2s}
-.nav-btn .n-lbl{font-size:.58rem;font-weight:700;color:var(--t3);transition:color .2s}
+.nav-btn .n-icon{font-size:1.15rem;transition:transform .2s}
+.nav-btn .n-lbl{font-size:.52rem;font-weight:700;color:var(--t3);transition:color .2s}
 .nav-btn.active .n-icon{transform:translateY(-2px)}
 .nav-btn.active .n-lbl{color:var(--orange)}
 .nav-btn.active::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
-  width:26px;height:3px;background:linear-gradient(90deg,var(--orange),var(--coral));
+  width:22px;height:3px;background:linear-gradient(90deg,var(--orange),var(--coral));
   border-radius:0 0 3px 3px}
 
 /* ── SECTIONS ── */
@@ -495,6 +495,112 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;
   display:flex;align-items:center;gap:8px}
 .mod-acts{display:flex;gap:10px;margin-top:16px}
 
+/* ── KNOWLEDGE SECTION ── */
+.know-hero{
+  background:linear-gradient(135deg,var(--orange),var(--coral));
+  border-radius:var(--r-lg);padding:20px 18px;margin-bottom:12px;
+  color:#fff;position:relative;overflow:hidden;
+}
+.know-hero::after{
+  content:'👶';position:absolute;right:16px;top:50%;
+  transform:translateY(-50%);font-size:4rem;opacity:.2;
+}
+.know-hero h2{font-size:1.1rem;font-weight:900;margin-bottom:4px}
+.know-hero p{font-size:.78rem;opacity:.9;line-height:1.5}
+
+/* Category pills */
+.cat-pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.cat-pill{
+  padding:7px 14px;border-radius:var(--r-full);
+  font-size:.75rem;font-weight:700;cursor:pointer;
+  border:1.5px solid transparent;transition:all .2s;
+  white-space:nowrap;
+}
+.cat-pill.active{color:#fff;box-shadow:0 3px 10px rgba(0,0,0,.15)}
+.cat-pill.c-milk{background:rgba(255,140,66,.1);color:var(--orange);border-color:rgba(255,140,66,.3)}
+.cat-pill.c-milk.active{background:var(--orange);border-color:var(--orange)}
+.cat-pill.c-toilet{background:rgba(167,139,250,.1);color:var(--purple);border-color:rgba(167,139,250,.3)}
+.cat-pill.c-toilet.active{background:var(--purple);border-color:var(--purple)}
+.cat-pill.c-food{background:rgba(52,211,153,.1);color:var(--mint);border-color:rgba(52,211,153,.3)}
+.cat-pill.c-food.active{background:var(--mint);border-color:var(--mint)}
+.cat-pill.c-sleep{background:rgba(56,189,248,.1);color:var(--sky);border-color:rgba(56,189,248,.3)}
+.cat-pill.c-sleep.active{background:var(--sky);border-color:var(--sky)}
+.cat-pill.c-hygiene{background:rgba(245,158,11,.1);color:var(--amber);border-color:rgba(245,158,11,.3)}
+.cat-pill.c-hygiene.active{background:var(--amber);border-color:var(--amber)}
+.cat-pill.c-warn{background:rgba(239,68,68,.1);color:var(--red);border-color:rgba(239,68,68,.3)}
+.cat-pill.c-warn.active{background:var(--red);border-color:var(--red)}
+
+/* Knowledge card */
+.know-card{
+  background:var(--surface);border-radius:var(--r-lg);
+  margin-bottom:10px;overflow:hidden;
+  box-shadow:var(--sh-sm);border:1px solid var(--border2);
+  transition:box-shadow .2s;
+}
+.know-card-hd{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 16px;cursor:pointer;
+  transition:background .15s;
+}
+.know-card-hd:active{background:var(--surface2)}
+.know-icon{width:40px;height:40px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.2rem;flex-shrink:0}
+.know-hd-text{flex:1;min-width:0}
+.know-hd-title{font-size:.88rem;font-weight:800;color:var(--t1);line-height:1.3}
+.know-hd-sub{font-size:.7rem;color:var(--t3);margin-top:2px}
+.know-arr{font-size:.75rem;color:var(--t3);transition:transform .25s;flex-shrink:0}
+.know-card.open .know-arr{transform:rotate(180deg)}
+.know-body{
+  display:none;padding:0 16px 16px;
+  border-top:1px solid var(--border2);
+  background:var(--surface2);
+}
+.know-card.open .know-body{display:block}
+.know-body-inner{padding-top:14px}
+
+/* Knowledge items inside body */
+.know-item{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:10px 0;border-bottom:1px solid rgba(0,0,0,.05);
+  font-size:.82rem;color:var(--t2);line-height:1.6;
+}
+.know-item:last-child{border-bottom:none;padding-bottom:0}
+.know-item-icon{font-size:1.1rem;flex-shrink:0;margin-top:1px}
+.know-item b{color:var(--t1)}
+
+/* Month badge inside know */
+.mo-badge{
+  display:inline-block;background:rgba(255,140,66,.1);
+  color:var(--orange);border-radius:6px;padding:2px 8px;
+  font-size:.68rem;font-weight:700;margin-right:4px;
+}
+.mo-table{width:100%;border-collapse:collapse;font-size:.78rem;margin-top:10px}
+.mo-table th{background:rgba(255,140,66,.08);color:var(--t2);
+  font-weight:700;padding:7px 10px;text-align:left;
+  border-bottom:1.5px solid var(--border)}
+.mo-table td{padding:7px 10px;border-bottom:1px solid var(--border2);color:var(--t2);vertical-align:top}
+.mo-table tr:last-child td{border-bottom:none}
+.mo-table tr:nth-child(even) td{background:rgba(255,140,66,.03)}
+
+/* Alert box inside know */
+.know-alert{
+  border-radius:var(--r-sm);padding:10px 12px;
+  margin:8px 0;font-size:.8rem;line-height:1.6;
+}
+.know-alert.red{background:var(--red-bg);border-left:3px solid var(--red);color:#7F1D1D}
+.know-alert.amber{background:var(--amber-bg);border-left:3px solid var(--amber);color:#78350F}
+.know-alert.green{background:var(--mint-bg);border-left:3px solid var(--mint);color:#064E3B}
+.know-alert.blue{background:var(--sky-bg);border-left:3px solid var(--sky);color:#0C4A6E}
+
+/* Age-highlight current month */
+.know-cur-mo{
+  background:linear-gradient(135deg,rgba(255,140,66,.08),rgba(255,107,107,.06));
+  border:1.5px solid rgba(255,140,66,.25);border-radius:var(--r-md);
+  padding:12px 14px;margin-bottom:10px;
+}
+.know-cur-mo h4{font-size:.8rem;font-weight:800;color:var(--orange);margin-bottom:8px}
+
 /* ── TOAST ── */
 .toast{position:fixed;bottom:calc(var(--tab-h)+var(--sab)+80px);left:50%;
   transform:translateX(-50%) translateY(20px);
@@ -752,13 +858,40 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;
   <div class="card"><div class="card-hd"><span class="dot"></span>Lời khuyên cho bé</div><div id="tipsBox"><div style="font-size:.82rem;color:var(--t3)">Ghi nhận ít nhất 1 cữ bú để nhận lời khuyên.</div></div></div>
 </div>
 
-<!-- ═══ BOTTOM NAV (6 tabs) ═══ -->
+<!-- ═══ KNOWLEDGE SECTION ═══ -->
+<div class="section pad" id="sec-knowledge">
+
+  <!-- Hero -->
+  <div class="know-hero">
+    <h2>📚 Kiến thức nuôi con</h2>
+    <p>Hướng dẫn toàn diện cho bé dưới 1 tuổi — dinh dưỡng, vệ sinh, ngủ, sức khoẻ</p>
+  </div>
+
+  <!-- Current month highlight (dynamic) -->
+  <div id="kCurMonth"></div>
+
+  <!-- Filter pills -->
+  <div class="cat-pills">
+    <span class="cat-pill c-milk active" onclick="filterKnow('all',this)">🌟 Tất cả</span>
+    <span class="cat-pill c-milk" onclick="filterKnow('milk',this)">🍼 Sữa & Bú</span>
+    <span class="cat-pill c-food" onclick="filterKnow('food',this)">🥣 Ăn dặm</span>
+    <span class="cat-pill c-toilet" onclick="filterKnow('toilet',this)">🚼 Vệ sinh</span>
+    <span class="cat-pill c-hygiene" onclick="filterKnow('hygiene',this)">🛁 Tắm & Da</span>
+    <span class="cat-pill c-sleep" onclick="filterKnow('sleep',this)">😴 Giấc ngủ</span>
+    <span class="cat-pill c-warn" onclick="filterKnow('warn',this)">🚨 Cảnh báo</span>
+  </div>
+
+  <div id="knowCards"></div>
+</div>
+
+<!-- ═══ BOTTOM NAV — 6 tabs ═══ -->
 <nav class="bot-nav">
   <button class="nav-btn active" onclick="switchTab('milk',this)"><span class="n-icon">🍼</span><span class="n-lbl">Sữa</span></button>
   <button class="nav-btn" onclick="switchTab('toilet',this)"><span class="n-icon">🚼</span><span class="n-lbl">Vệ sinh</span></button>
   <button class="nav-btn" onclick="switchTab('mood',this)"><span class="n-icon">😴</span><span class="n-lbl">Trạng thái</span></button>
   <button class="nav-btn" onclick="switchTab('diary',this)"><span class="n-icon">📅</span><span class="n-lbl">Nhật ký</span></button>
   <button class="nav-btn" onclick="switchTab('analysis',this)"><span class="n-icon">📊</span><span class="n-lbl">Phân tích</span></button>
+  <button class="nav-btn" onclick="switchTab('knowledge',this)"><span class="n-icon">📚</span><span class="n-lbl">Kiến thức</span></button>
 </nav>
 
 <!-- ═══ FAB ═══ -->
@@ -1999,12 +2132,386 @@ function switchTab(name,btn) {
   if(name==='analysis') renderAnalysis(getDay(cur));
   if(name==='diary') { initCal(); renderCalendar(); }
   if(name==='mood') renderMood(getDay(cur));
+  if(name==='knowledge') renderKnowledge();
 }
 
 /* ════════════════════════════════════════
    TOAST
 ════════════════════════════════════════ */
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+/* ════════════════════════════════════════
+   KNOWLEDGE DATA
+════════════════════════════════════════ */
+const KNOW_DATA = [
+
+  /* ───────── SỮA & BÚ ───────── */
+  {
+    id:'k-milk-schedule', cat:'milk',
+    icon:'🍼', iconBg:'rgba(255,140,66,.12)',
+    title:'Lịch bú theo từng tháng tuổi',
+    sub:'Số cữ, ml/cữ và tổng ml mỗi ngày',
+    content:`
+      <table class="mo-table">
+        <tr><th>Tháng tuổi</th><th>Số cữ/ngày</th><th>ml/cữ</th><th>Tổng ml/ngày</th></tr>
+        <tr><td><b>Sơ sinh (0–4 tuần)</b></td><td>8–12 cữ</td><td>45–90ml</td><td>450–600ml</td></tr>
+        <tr><td><b>1 tháng</b></td><td>8–12 cữ</td><td>60–90ml</td><td>500–700ml</td></tr>
+        <tr><td><b>2 tháng</b></td><td>7–9 cữ</td><td>90–120ml</td><td>600–800ml</td></tr>
+        <tr><td><b>3 tháng</b></td><td>6–8 cữ</td><td>120–150ml</td><td>700–900ml</td></tr>
+        <tr><td><b>4–5 tháng</b></td><td>5–7 cữ</td><td>120–180ml</td><td>750–1000ml</td></tr>
+        <tr><td><b>6 tháng</b></td><td>4–6 cữ</td><td>150–240ml</td><td>800–1000ml</td></tr>
+        <tr><td><b>7–9 tháng</b></td><td>3–5 cữ</td><td>150–240ml</td><td>600–950ml</td></tr>
+        <tr><td><b>10–12 tháng</b></td><td>3–4 cữ</td><td>180–240ml</td><td>500–800ml</td></tr>
+      </table>
+      <div class="know-alert blue" style="margin-top:10px">💡 Mỗi bé có thể ±20% so với bảng. Tốt nhất theo nhu cầu của bé (bú theo nhu cầu).</div>`
+  },
+  {
+    id:'k-milk-signs', cat:'milk',
+    icon:'✅', iconBg:'rgba(52,211,153,.12)',
+    title:'Dấu hiệu bé bú đủ sữa',
+    sub:'Cách kiểm tra bé có đủ sữa không',
+    content:`
+      <div class="know-item"><div class="know-item-icon">💧</div><div><b>Tã ướt ≥6 lần/ngày</b> (sau ngày 5) — đây là chỉ số tin cậy nhất</div></div>
+      <div class="know-item"><div class="know-item-icon">⚖️</div><div><b>Tăng cân đều:</b> 0–3 tháng: 150–200g/tuần · 3–6 tháng: ~100g/tuần · 6–12 tháng: 70–85g/tuần</div></div>
+      <div class="know-item"><div class="know-item-icon">😊</div><div><b>Bé hài lòng</b> sau khi bú, không khóc đòi bú thêm ngay</div></div>
+      <div class="know-item"><div class="know-item-icon">🤱</div><div><b>Ngực mẹ mềm</b> sau khi cho bú (với bú mẹ trực tiếp)</div></div>
+      <div class="know-item"><div class="know-item-icon">👁️</div><div><b>Mắt bé linh hoạt</b>, da tươi, không vàng, không lờ đờ</div></div>
+      <div class="know-alert amber">⚠️ Nếu bé ngủ liên tục >4h (0–1 tháng), cần đánh thức để bú — trẻ sơ sinh dễ mất nước.</div>`
+  },
+  {
+    id:'k-milk-breastfeed', cat:'milk',
+    icon:'🤱', iconBg:'rgba(255,107,107,.1)',
+    title:'Kỹ thuật bú mẹ đúng cách',
+    sub:'Tư thế, cách ngậm, thời gian mỗi bên',
+    content:`
+      <div class="know-item"><div class="know-item-icon">🔄</div><div><b>Cho bú cạn một bên trước</b> (~10–20 phút) rồi mới chuyển bên. Sữa cuối (hindmilk) giàu chất béo — quan trọng cho não bé.</div></div>
+      <div class="know-item"><div class="know-item-icon">👄</div><div><b>Bé ngậm đúng cách:</b> ngậm cả quầng vú (không chỉ đầu ti), môi dưới hướng ra ngoài, má phồng khi bú.</div></div>
+      <div class="know-item"><div class="know-item-icon">⏱️</div><div><b>Thời gian mỗi cữ:</b> 15–40 phút. Bé 0–1 tháng thường bú lâu hơn (30–45 phút).</div></div>
+      <div class="know-item"><div class="know-item-icon">🌆</div><div><b>Cluster feed:</b> buổi chiều tối (17h–22h) bé bú dồn dập nhiều cữ liên tiếp — hoàn toàn bình thường, bé đang tích sữa cho đêm.</div></div>
+      <div class="know-item"><div class="know-item-icon">🤫</div><div>Khi bé 4–5 tháng hay xao lãng khi bú, hãy <b>cho bú ở nơi yên tĩnh</b>, ánh sáng mờ, tắt tivi/điện thoại.</div></div>`
+  },
+  {
+    id:'k-milk-formula', cat:'milk',
+    icon:'🥛', iconBg:'rgba(56,189,248,.12)',
+    title:'Pha sữa công thức đúng cách',
+    sub:'Tỉ lệ, nhiệt độ nước và bảo quản',
+    content:`
+      <div class="know-item"><div class="know-item-icon">💧</div><div><b>Nước pha:</b> dùng nước đun sôi để nguội 40–50°C. Không dùng nước khoáng hay nước máy chưa đun.</div></div>
+      <div class="know-item"><div class="know-item-icon">🥄</div><div><b>Tỉ lệ:</b> theo hướng dẫn trên hộp (thường 1 thìa gạt = 30ml nước). Không pha đặc hơn hay loãng hơn.</div></div>
+      <div class="know-item"><div class="know-item-icon">🌡️</div><div><b>Kiểm tra nhiệt độ:</b> nhỏ vài giọt lên cổ tay — phải cảm thấy ấm, không nóng.</div></div>
+      <div class="know-item"><div class="know-item-icon">⏰</div><div><b>Sử dụng trong vòng 2 giờ</b> sau khi pha. Sữa thừa trong bình sau bú phải bỏ ngay (không cất lại).</div></div>
+      <div class="know-item"><div class="know-item-icon">🧊</div><div><b>Bảo quản sữa mẹ vắt:</b> nhiệt độ phòng 4h · ngăn mát tủ lạnh 4 ngày · ngăn đá 3–6 tháng. Rã đông bằng cách ngâm nước ấm, không dùng lò vi sóng.</div></div>`
+  },
+
+  /* ───────── ĂN DẶM ───────── */
+  {
+    id:'k-food-start', cat:'food',
+    icon:'🥣', iconBg:'rgba(52,211,153,.12)',
+    title:'Bắt đầu ăn dặm — Khi nào & Như thế nào',
+    sub:'Dấu hiệu sẵn sàng và thực phẩm đầu tiên',
+    content:`
+      <div class="know-alert green"><b>Thời điểm phù hợp: 6 tháng tuổi</b> (không sớm hơn 4 tháng, không muộn hơn 7 tháng)</div>
+      <div class="know-item"><div class="know-item-icon">✅</div><div><b>Dấu hiệu sẵn sàng ăn dặm:</b><br>• Ngồi vững khi có tựa lưng<br>• Kiểm soát được đầu & cổ<br>• Tỏ ra thích thú khi thấy người lớn ăn<br>• Hết phản xạ đẩy lưỡi</div></div>
+      <div class="know-item"><div class="know-item-icon">🥕</div><div><b>Thực phẩm đầu tiên phù hợp:</b> bí đỏ, khoai lang, cà rốt, chuối, bơ, táo hấp, lê hấp — nghiền mịn hoặc ép nhuyễn.</div></div>
+      <div class="know-item"><div class="know-item-icon">📅</div><div><b>Nguyên tắc 3 ngày:</b> mỗi thực phẩm mới thử trong 3 ngày liên tiếp trước khi thêm thực phẩm mới — để phát hiện dị ứng.</div></div>
+      <div class="know-item"><div class="know-item-icon">🍼</div><div><b>Sữa vẫn là thức ăn chính</b> đến 12 tháng. Ăn dặm chỉ là bổ sung, không thay thế sữa.</div></div>`
+  },
+  {
+    id:'k-food-schedule', cat:'food',
+    icon:'📅', iconBg:'rgba(52,211,153,.1)',
+    title:'Lịch ăn dặm theo tháng tuổi',
+    sub:'Số bữa, lượng và loại thức ăn phù hợp',
+    content:`
+      <table class="mo-table">
+        <tr><th>Tháng</th><th>Số bữa</th><th>Lượng/bữa</th><th>Độ đặc</th></tr>
+        <tr><td><b>6 tháng</b></td><td>1–2 bữa</td><td>2–4 thìa</td><td>Loãng như sữa chua</td></tr>
+        <tr><td><b>7–8 tháng</b></td><td>2–3 bữa</td><td>100–150g</td><td>Nghiền mịn, ít cục</td></tr>
+        <tr><td><b>9–10 tháng</b></td><td>3 bữa</td><td>150–200g</td><td>Nghiền thô, cục nhỏ</td></tr>
+        <tr><td><b>11–12 tháng</b></td><td>3 bữa + 1–2 snack</td><td>200–250g</td><td>Cắt nhỏ, gần giống người lớn</td></tr>
+      </table>
+      <div class="know-item" style="margin-top:10px"><div class="know-item-icon">🌈</div><div><b>Đủ 4 nhóm dinh dưỡng mỗi bữa:</b> tinh bột (cơm/bột) + đạm (thịt/cá/trứng) + rau củ + chất béo (dầu ăn/bơ)</div></div>
+      <div class="know-alert amber">⚠️ Không thêm muối, đường, mắm vào đồ ăn của bé dưới 1 tuổi — thận bé chưa lọc được.</div>`
+  },
+  {
+    id:'k-food-allergy', cat:'food',
+    icon:'⚠️', iconBg:'rgba(245,158,11,.12)',
+    title:'Thực phẩm nên tránh dưới 1 tuổi',
+    sub:'Dị ứng, ngộ độc và thực phẩm nguy hiểm',
+    content:`
+      <div class="know-alert red"><b>🚫 TUYỆT ĐỐI TRÁNH trước 12 tháng:</b></div>
+      <div class="know-item"><div class="know-item-icon">🍯</div><div><b>Mật ong</b> — chứa bào tử Clostridium botulinum gây ngộ độc nghiêm trọng cho trẻ dưới 1 tuổi</div></div>
+      <div class="know-item"><div class="know-item-icon">🥛</div><div><b>Sữa bò nguyên chất</b> (uống trực tiếp) — hệ tiêu hoá bé chưa xử lý được. Có thể dùng làm nguyên liệu nấu từ 6 tháng.</div></div>
+      <div class="know-item"><div class="know-item-icon">🌰</div><div><b>Hạt nguyên hạt</b> (lạc, hạt điều...) — nguy cơ hóc nghẹt. Dùng dạng bơ nghiền từ 6 tháng nếu không dị ứng.</div></div>
+      <div class="know-item"><div class="know-item-icon">🍬</div><div><b>Muối & đường</b> — thận bé chưa lọc được muối, đường gây thói quen xấu</div></div>
+      <div class="know-item"><div class="know-item-icon">🐟</div><div><b>Cá ngừ đại dương, cá kiếm</b> — hàm lượng thuỷ ngân cao. Chọn cá hồi, cá rô, cá thu nhỏ.</div></div>
+      <div class="know-alert amber">🥜 <b>Dị ứng thường gặp:</b> trứng, lạc, đậu nành, lúa mì, cá, sò hến. Thử từng loại và quan sát 3 ngày.</div>`
+  },
+  {
+    id:'k-food-blw', cat:'food',
+    icon:'🤚', iconBg:'rgba(52,211,153,.08)',
+    title:'Ăn dặm chỉ huy (BLW) vs. ăn dặm truyền thống',
+    sub:'Ưu nhược điểm và cách kết hợp',
+    content:`
+      <div class="know-item"><div class="know-item-icon">🥄</div><div><b>Ăn dặm truyền thống (nghiền/xay):</b><br>✅ Kiểm soát lượng ăn tốt, phù hợp bé mới bắt đầu<br>✅ Dễ đảm bảo đủ dinh dưỡng<br>❌ Bé ít có cơ hội tự khám phá thức ăn</div></div>
+      <div class="know-item"><div class="know-item-icon">🍌</div><div><b>BLW (Baby Led Weaning):</b> cho bé tự cầm thức ăn mềm cắt khúc<br>✅ Phát triển kỹ năng vận động, kỹ năng nhai<br>✅ Bé ít kén ăn hơn về sau<br>❌ Cần giám sát kỹ, dễ bẩn, cần tin tưởng vào bé</div></div>
+      <div class="know-item"><div class="know-item-icon">💡</div><div><b>Kết hợp linh hoạt:</b> dùng cháo/bột nghiền cho bữa chính kết hợp một vài miếng thức ăn mềm để bé tự cầm — cách được khuyến nghị nhất.</div></div>
+      <div class="know-alert blue">🏥 Luôn ngồi cạnh bé khi ăn. Biết cách sơ cứu hóc nghẹt là kỹ năng bắt buộc với bố mẹ.</div>`
+  },
+
+  /* ───────── VỆ SINH ───────── */
+  {
+    id:'k-toilet-pee', cat:'toilet',
+    icon:'💧', iconBg:'rgba(56,189,248,.12)',
+    title:'Số lần tè theo tháng tuổi',
+    sub:'Tiêu chuẩn tã ướt và dấu hiệu mất nước',
+    content:`
+      <table class="mo-table">
+        <tr><th>Tháng</th><th>Số lần tè/ngày</th><th>Ghi chú</th></tr>
+        <tr><td>Ngày 1–2</td><td>1–2 lần</td><td>Bình thường, sữa mẹ còn ít</td></tr>
+        <tr><td>Ngày 3–4</td><td>3–4 lần</td><td>Sữa mẹ bắt đầu về</td></tr>
+        <tr><td>Ngày 5+ & 0–1 tháng</td><td>≥6 lần</td><td>Dấu hiệu bú đủ</td></tr>
+        <tr><td>2–6 tháng</td><td>6–8 lần</td><td>Bình thường</td></tr>
+        <tr><td>6–12 tháng</td><td>4–8 lần</td><td>Giảm dần do ăn dặm</td></tr>
+      </table>
+      <div class="know-alert red" style="margin-top:10px">🚨 <b>Dấu hiệu mất nước:</b> tã không ướt >6h, nước tiểu vàng đậm, môi khô, mắt trũng, thóp lõm — cần đến bác sĩ ngay.</div>`
+  },
+  {
+    id:'k-toilet-poop', cat:'toilet',
+    icon:'💩', iconBg:'rgba(167,139,250,.12)',
+    title:'Phân bé — màu sắc, tần suất & ý nghĩa',
+    sub:'Hướng dẫn đọc màu phân và nhận biết bất thường',
+    content:`
+      <div class="know-item"><div class="know-item-icon">⚫</div><div><b>Phân su (đen/xanh đậm):</b> 1–3 ngày đầu — hoàn toàn bình thường, phải có.</div></div>
+      <div class="know-item"><div class="know-item-icon">🟤</div><div><b>Xanh nâu → vàng:</b> ngày 3–5, đang chuyển tiếp sang phân sữa bình thường.</div></div>
+      <div class="know-item"><div class="know-item-icon">🟡</div><div><b>Vàng sệt/nhão:</b> bình thường khi bú mẹ. Có thể như mù tạt, thỉnh thoảng có hạt nhỏ.</div></div>
+      <div class="know-item"><div class="know-item-icon">🟤</div><div><b>Nâu đặc hơn:</b> bình thường khi bú sữa công thức hoặc khi bắt đầu ăn dặm.</div></div>
+      <div class="know-item"><div class="know-item-icon">🟢</div><div><b>Xanh lá:</b> có thể do bú không đủ sữa béo (hindmilk), mẹ ăn nhiều rau xanh, hoặc bé bị virus. Thỉnh thoảng là BT.</div></div>
+      <div class="know-alert red">🔴 <b>Đến bác sĩ ngay:</b> phân đỏ/có máu, trắng/xám/xanh nhạt như phấn, đen sau ngày 3 mà bé chưa bú được.</div>
+      <div class="know-item" style="margin-top:8px"><div class="know-item-icon">📅</div><div><b>Tần suất:</b> 0–6 tuần: có thể sau mỗi cữ bú. Sau 6 tuần (bú mẹ): 3–7 ngày/lần là BT nếu phân mềm. Sữa CT: 1–2 lần/ngày.</div></div>`
+  },
+  {
+    id:'k-toilet-constipation', cat:'toilet',
+    icon:'😣', iconBg:'rgba(245,158,11,.1)',
+    title:'Táo bón & Tiêu chảy ở trẻ nhỏ',
+    sub:'Nhận biết, xử lý tại nhà và khi nào cần đến bác sĩ',
+    content:`
+      <div class="know-item"><div class="know-item-icon">⚠️</div><div><b>Táo bón THẬT:</b> phân cứng như hạt đậu/viên bi, bé rặn đau, khóc khi ị — không phải do ít ị.<br>Xử lý: massage bụng chiều kim đồng hồ, đạp xe đạp (cơ động chân bé), cho bú thêm.</div></div>
+      <div class="know-item"><div class="know-item-icon">✅</div><div><b>Bú mẹ = không táo bón:</b> trẻ bú mẹ ít ị (7–10 ngày) mà phân mềm không phải táo bón — hệ tiêu hoá hấp thu tốt.</div></div>
+      <div class="know-item"><div class="know-item-icon">💧</div><div><b>Tiêu chảy:</b> phân loãng như nước, ≥3–4 lần/ngày nhiều hơn bình thường, mùi khó chịu, có thể có nhầy/máu.<br><b>Nguy hiểm:</b> mất nước nhanh ở trẻ nhỏ.</div></div>
+      <div class="know-alert red">🚨 Đến bác sĩ ngay: tiêu chảy có máu, sốt cao + tiêu chảy, dấu hiệu mất nước, bé dưới 3 tháng bị tiêu chảy.</div>`
+  },
+
+  /* ───────── TẮM & DA ───────── */
+  {
+    id:'k-hygiene-bath', cat:'hygiene',
+    icon:'🛁', iconBg:'rgba(245,158,11,.12)',
+    title:'Tắm cho bé sơ sinh & nhỏ',
+    sub:'Tần suất, nhiệt độ nước và kỹ thuật tắm an toàn',
+    content:`
+      <div class="know-item"><div class="know-item-icon">📅</div><div><b>Tần suất:</b> 0–1 tháng: 2–3 lần/tuần. Từ 2–3 tháng: mỗi ngày hoặc cách ngày. Mùa đông có thể giảm tần suất.</div></div>
+      <div class="know-item"><div class="know-item-icon">🌡️</div><div><b>Nhiệt độ nước:</b> 37–38°C (ấm, không nóng). Kiểm tra bằng khuỷu tay hoặc nhiệt kế nước.</div></div>
+      <div class="know-item"><div class="know-item-icon">⏱️</div><div><b>Thời gian tắm:</b> 5–10 phút. Không tắm quá lâu — da bé dễ mất độ ẩm.</div></div>
+      <div class="know-item"><div class="know-item-icon">👐</div><div><b>Rốn chưa rụng:</b> lau người bằng khăn ẩm ấm thay vì ngâm bồn. Sau khi rốn rụng (~1–3 tuần) mới tắm bồn.</div></div>
+      <div class="know-item"><div class="know-item-icon">🧴</div><div><b>Sản phẩm:</b> chỉ dùng xà phòng/sữa tắm dành riêng cho trẻ sơ sinh (pH trung tính, không hương liệu mạnh). Không cần dùng nhiều.</div></div>
+      <div class="know-alert amber">⚠️ KHÔNG BAO GIỜ rời bé một mình khi đang tắm, dù chỉ 1 giây. Trẻ có thể chết đuối trong vài cm nước.</div>`
+  },
+  {
+    id:'k-hygiene-skin', cat:'hygiene',
+    icon:'🌸', iconBg:'rgba(236,72,153,.1)',
+    title:'Chăm sóc da bé — Hăm tã, mụn sữa, chàm',
+    sub:'Nhận biết và xử lý các vấn đề da thường gặp',
+    content:`
+      <div class="know-item"><div class="know-item-icon">🔴</div><div><b>Hăm tã:</b> da đỏ, nổi hạt ở vùng tã. Xử lý: thay tã thường xuyên hơn, để thoáng khí 15–20 phút sau mỗi lần thay, dùng kem hăm (zinc oxide). Nặng hơn cần gặp bác sĩ.</div></div>
+      <div class="know-item"><div class="know-item-icon">⚪</div><div><b>Mụn sữa (Milia):</b> hạt trắng nhỏ ở mặt, mũi — do tuyến bã nhờn chưa phát triển. Tự biến mất sau 4–6 tuần. Không nặn.</div></div>
+      <div class="know-item"><div class="know-item-icon">🟡</div><div><b>Vàng da sơ sinh:</b> thường gặp ngày 2–7, tự hết sau 2 tuần. Cho bú thường xuyên giúp đào thải bilirubin. Nếu vàng đậm/lan xuống rốn — cần kiểm tra.</div></div>
+      <div class="know-item"><div class="know-item-icon">🌿</div><div><b>Chàm (Eczema):</b> da khô, đỏ, ngứa, thường ở má/khuỷu tay/khoeo. Dưỡng ẩm đều đặn (2 lần/ngày). Tránh sản phẩm có hương liệu.</div></div>
+      <div class="know-item"><div class="know-item-icon">✨</div><div><b>Dưỡng ẩm:</b> thoa ngay sau tắm khi da còn hơi ẩm để giữ độ ẩm tốt nhất. Dùng kem dưỡng không hương liệu dành cho trẻ em.</div></div>`
+  },
+  {
+    id:'k-hygiene-navel', cat:'hygiene',
+    icon:'🌀', iconBg:'rgba(99,102,241,.1)',
+    title:'Chăm sóc rốn & vệ sinh hàng ngày',
+    sub:'Rốn sơ sinh, mắt, tai, móng tay',
+    content:`
+      <div class="know-item"><div class="know-item-icon">🌀</div><div><b>Rốn:</b> để khô thoáng, không đắp gì lên. Lau nhẹ với bông gòn ẩm nếu bẩn. Rốn tự rụng sau 7–21 ngày. Dấu hiệu nhiễm trùng: đỏ, sưng, có mủ, mùi hôi → gặp bác sĩ.</div></div>
+      <div class="know-item"><div class="know-item-icon">👁️</div><div><b>Mắt:</b> lau từ trong ra ngoài bằng bông ẩm (nước muối sinh lý). Mỗi mắt dùng bông riêng. Ghèn vàng thường gặp do tắc ống lệ — massage nhẹ góc mắt trong giúp thông.</div></div>
+      <div class="know-item"><div class="know-item-icon">👂</div><div><b>Tai:</b> chỉ lau phần tai ngoài. KHÔNG dùng tăm bông ngoáy tai — nguy cơ đẩy ráy vào sâu hơn và thủng màng nhĩ.</div></div>
+      <div class="know-item"><div class="know-item-icon">💅</div><div><b>Móng tay:</b> cắt khi bé ngủ bằng kéo đầu tròn hoặc dũa móng. Móng bé mọc nhanh (cần cắt 1–2 lần/tuần). Đeo bao tay khi bé còn nhỏ để tránh bé tự cào mặt.</div></div>
+      <div class="know-item"><div class="know-item-icon">🦷</div><div><b>Nướu & răng:</b> lau nướu bằng gạc ẩm sau mỗi cữ bú từ khi mới sinh. Khi mọc răng (4–7 tháng): dùng bàn chải silicon mềm, không kem đánh răng (dưới 2 tuổi).</div></div>`
+  },
+
+  /* ───────── GIẤC NGỦ ───────── */
+  {
+    id:'k-sleep-schedule', cat:'sleep',
+    icon:'😴', iconBg:'rgba(56,189,248,.12)',
+    title:'Giấc ngủ theo tháng tuổi',
+    sub:'Tổng giờ ngủ, giấc ngày, giấc đêm',
+    content:`
+      <table class="mo-table">
+        <tr><th>Tháng</th><th>Tổng giờ/ngày</th><th>Giấc đêm</th><th>Giấc ngày</th></tr>
+        <tr><td><b>0–1 tháng</b></td><td>14–17h</td><td>Chưa phân biệt ngày/đêm</td><td>Ngủ rải rác</td></tr>
+        <tr><td><b>2–3 tháng</b></td><td>13–15h</td><td>3–5h liên tiếp</td><td>3–4 giấc</td></tr>
+        <tr><td><b>4–6 tháng</b></td><td>12–15h</td><td>5–8h liên tiếp</td><td>2–3 giấc (~1.5h/giấc)</td></tr>
+        <tr><td><b>7–9 tháng</b></td><td>12–14h</td><td>8–10h liên tiếp</td><td>2 giấc</td></tr>
+        <tr><td><b>10–12 tháng</b></td><td>11–14h</td><td>10–12h liên tiếp</td><td>1–2 giấc</td></tr>
+      </table>
+      <div class="know-alert blue" style="margin-top:10px">💡 Trẻ 0–3 tháng thức dậy ban đêm để bú là bình thường và cần thiết. Không cần cố ép ngủ xuyên đêm quá sớm.</div>`
+  },
+  {
+    id:'k-sleep-safe', cat:'sleep',
+    icon:'🛏️', iconBg:'rgba(99,102,241,.1)',
+    title:'Ngủ an toàn — Phòng tránh SIDS',
+    sub:'Vị trí ngủ, môi trường ngủ và những điều cần tránh',
+    content:`
+      <div class="know-alert red"><b>🔴 Quy tắc ABC ngủ an toàn:</b> Alone (một mình) · Back (nằm ngửa) · Crib (cũi/nôi phẳng)</div>
+      <div class="know-item"><div class="know-item-icon">🔄</div><div><b>Luôn cho bé nằm NGỬA</b> khi ngủ (từ khi sinh đến 12 tháng), kể cả giấc ngủ ngày. Nằm sấp CHỈ khi bé thức và có người giám sát (tummy time).</div></div>
+      <div class="know-item"><div class="know-item-icon">🛏️</div><div><b>Bề mặt ngủ cứng, phẳng:</b> đệm nôi chuyên dụng. Không dùng gối mềm, chăn bông dày, đồ chơi nhồi bông trong cũi.</div></div>
+      <div class="know-item"><div class="know-item-icon">🌡️</div><div><b>Nhiệt độ phòng:</b> 20–22°C. Mặc đủ ấm nhưng không quá nóng — dấu hiệu quá nóng: tóc ướt, da đỏ, thở nhanh.</div></div>
+      <div class="know-item"><div class="know-item-icon">🚭</div><div><b>Không hút thuốc</b> trong nhà và xe — khói thuốc tăng nguy cơ SIDS gấp 2–3 lần.</div></div>
+      <div class="know-item"><div class="know-item-icon">🤱</div><div><b>Ngủ cùng phòng</b> (khác giường) được khuyến nghị đến ít nhất 6 tháng — giảm 50% nguy cơ SIDS.</div></div>`
+  },
+  {
+    id:'k-sleep-tips', cat:'sleep',
+    icon:'🌙', iconBg:'rgba(56,189,248,.08)',
+    title:'Mẹo giúp bé ngủ ngon hơn',
+    sub:'Thói quen ngủ, tín hiệu buồn ngủ và xử lý thức đêm',
+    content:`
+      <div class="know-item"><div class="know-item-icon">🕐</div><div><b>Nhận biết tín hiệu buồn ngủ sớm:</b> dụi mắt, nhìn xa xăm, ngáp, quấy nhẹ, giảm hoạt động. Đặt bé ngủ TRƯỚC khi bé quá mệt.</div></div>
+      <div class="know-item"><div class="know-item-icon">🔁</div><div><b>Lịch ngủ nhất quán</b> (từ 4–6 tháng): đặt bé ngủ cùng giờ mỗi ngày, nghi thức ngủ cố định (tắm → cho ăn → ru/hát nhẹ → đặt xuống).</div></div>
+      <div class="know-item"><div class="know-item-icon">🤫</div><div><b>White noise (tiếng ồn trắng):</b> tiếng máy hút bụi, máy sấy tóc, máy phát white noise — mô phỏng âm thanh trong bụng mẹ, rất hiệu quả cho 0–4 tháng.</div></div>
+      <div class="know-item"><div class="know-item-icon">🌆</div><div><b>Phân biệt ngày/đêm từ sớm:</b> ban ngày chơi ở nơi sáng, ồn ào; ban đêm phòng tối, yên tĩnh, ít tương tác khi bú đêm.</div></div>
+      <div class="know-item"><div class="know-item-icon">😴</div><div><b>4S của Harvey Karp:</b> Swaddle (quấn) · Side/Stomach position (bế nghiêng/úp) · Shush (tiếng sshhh) · Swing (đung đưa) — hiệu quả cho trẻ 0–3 tháng.</div></div>`
+  },
+
+  /* ───────── CẢNH BÁO ───────── */
+  {
+    id:'k-warn-emergency', cat:'warn',
+    icon:'🚨', iconBg:'rgba(239,68,68,.12)',
+    title:'Dấu hiệu cần đến bác sĩ NGAY',
+    sub:'Tình huống khẩn cấp không được chờ đợi',
+    content:`
+      <div class="know-alert red"><b>GỌI CẤP CỨU hoặc đến bệnh viện ngay nếu bé có:</b></div>
+      <div class="know-item"><div class="know-item-icon">🌡️</div><div><b>Sốt cao:</b> ≥38°C (dưới 3 tháng) · ≥39°C (3–6 tháng) · ≥40°C (trên 6 tháng) — đặc biệt kèm co giật</div></div>
+      <div class="know-item"><div class="know-item-icon">😮‍💨</div><div><b>Khó thở:</b> thở nhanh bất thường, co kéo cơ liên sườn, cánh mũi phập phồng, môi/móng tay tím tái</div></div>
+      <div class="know-item"><div class="know-item-icon">😵</div><div><b>Lờ đờ bất thường:</b> không thức dậy khi kích thích, phản ứng yếu hơn bình thường rất nhiều</div></div>
+      <div class="know-item"><div class="know-item-icon">🍼</div><div><b>Bỏ bú hoàn toàn</b> >4h (0–1 tháng) hoặc >6h (lớn hơn) kèm các triệu chứng khác</div></div>
+      <div class="know-item"><div class="know-item-icon">💩</div><div><b>Phân có máu</b> (đỏ tươi hoặc đen như nhựa đường sau ngày 3) · phân trắng/xám</div></div>
+      <div class="know-item"><div class="know-item-icon">🤮</div><div><b>Nôn mọi thứ</b> nhiều lần liên tiếp (không phải ọc sữa thông thường), đặc biệt nôn có máu</div></div>
+      <div class="know-item"><div class="know-item-icon">💧</div><div><b>Mất nước:</b> không tè >6h, thóp lõm, mắt trũng, khóc không ra nước mắt, môi khô</div></div>
+      <div class="know-item"><div class="know-item-icon">🏥</div><div><b>Co giật:</b> bất kỳ lần co giật nào đều cần đến bệnh viện</div></div>`
+  },
+  {
+    id:'k-warn-common', cat:'warn',
+    icon:'💊', iconBg:'rgba(245,158,11,.12)',
+    title:'Bệnh thường gặp & cách xử lý tại nhà',
+    sub:'Sốt, cảm lạnh, ho, nôn trớ',
+    content:`
+      <div class="know-item"><div class="know-item-icon">🌡️</div><div><b>Hạ sốt:</b> Paracetamol (acetaminophen) 10–15mg/kg mỗi 4–6h. Ibuprofen chỉ dùng cho trẻ ≥6 tháng. Lau mát bằng khăn ấm (không lạnh). KHÔNG dùng aspirin.</div></div>
+      <div class="know-item"><div class="know-item-icon">🤧</div><div><b>Cảm lạnh/Sổ mũi:</b> nhỏ nước muối sinh lý, hút mũi nhẹ. Kê cao đầu nôi. Tắm nước ấm. Không dùng thuốc cảm lạnh cho trẻ dưới 4 tuổi.</div></div>
+      <div class="know-item"><div class="know-item-icon">🤮</div><div><b>Nôn trớ thông thường:</b> ọc sữa sau bú (≤30ml) là bình thường. Giữ bé thẳng đứng 20–30 phút sau bú. Vỗ ợ hơi sau mỗi 60–90ml.</div></div>
+      <div class="know-item"><div class="know-item-icon">😮‍💨</div><div><b>Ho:</b> không dùng thuốc ho cho trẻ dưới 1 tuổi. Mật ong (trẻ ≥1 tuổi) giảm ho. Giữ không khí ẩm bằng máy tạo độ ẩm.</div></div>
+      <div class="know-alert blue">💡 Luôn tham khảo bác sĩ trước khi cho bé uống bất kỳ thuốc gì, kể cả thuốc không kê toa.</div>`
+  },
+  {
+    id:'k-warn-vaccine', cat:'warn',
+    icon:'💉', iconBg:'rgba(52,211,153,.1)',
+    title:'Lịch tiêm chủng trong năm đầu',
+    sub:'Vaccine quan trọng và phản ứng sau tiêm bình thường',
+    content:`
+      <table class="mo-table">
+        <tr><th>Thời điểm</th><th>Vaccine</th></tr>
+        <tr><td><b>Sơ sinh</b></td><td>Viêm gan B mũi 1 · BCG (lao)</td></tr>
+        <tr><td><b>2 tháng</b></td><td>5in1 (hoặc 6in1) mũi 1 · Rotavirus · Phế cầu mũi 1</td></tr>
+        <tr><td><b>3 tháng</b></td><td>5in1 mũi 2 · Rotavirus mũi 2 · Phế cầu mũi 2</td></tr>
+        <tr><td><b>4 tháng</b></td><td>5in1 mũi 3 · Rotavirus mũi 3</td></tr>
+        <tr><td><b>6 tháng</b></td><td>Viêm gan B mũi 3 · Cúm mũi 1 (khuyến nghị)</td></tr>
+        <tr><td><b>9 tháng</b></td><td>Sởi (MMR) · Viêm não Nhật Bản mũi 1</td></tr>
+        <tr><td><b>12 tháng</b></td><td>Thuỷ đậu · Viêm não mô cầu</td></tr>
+      </table>
+      <div class="know-item" style="margin-top:10px"><div class="know-item-icon">✅</div><div><b>Phản ứng bình thường sau tiêm:</b> sốt nhẹ (<38.5°C trong 1–2 ngày), đỏ/sưng chỗ tiêm, quấy khóc. Chườm lạnh chỗ tiêm, hạ sốt nếu cần.</div></div>
+      <div class="know-alert red">🚨 Cần theo dõi 30 phút sau tiêm tại cơ sở y tế. Quay lại ngay nếu: sốt cao >39°C, khóc liên tục >3h, khó thở, nổi mẩn toàn thân.</div>`
+  }
+];
+
+/* ════════════════════════════════════════
+   KNOWLEDGE RENDER
+════════════════════════════════════════ */
+let curKnowCat = 'all';
+
+function filterKnow(cat, btn) {
+  curKnowCat = cat;
+  document.querySelectorAll('.cat-pill').forEach(p => {
+    p.classList.remove('active');
+    // match background color class
+    const cls = [...p.classList].find(c => c.startsWith('c-'));
+    if (cls) {
+      p.style.background = '';
+      p.style.color = '';
+      p.style.borderColor = '';
+    }
+  });
+  if (btn) btn.classList.add('active');
+  renderKnowCards();
+}
+
+function toggleKnowCard(id) {
+  const card = document.getElementById(id);
+  if (!card) return;
+  card.classList.toggle('open');
+}
+
+function renderKnowledge() {
+  // Current month highlight
+  const mo = getMonths();
+  const kCur = document.getElementById('kCurMonth');
+  if (kCur && mo !== null) {
+    const r = MILK_REF[Math.min(mo,11)];
+    const dr = DIAP_REF[Math.min(mo,11)];
+    const fr = FUSSY_REF[Math.min(mo,11)];
+    kCur.innerHTML = `<div class="know-cur-mo">
+      <h4>📌 Bé đang ở tháng tuổi thứ ${mo} — Tóm tắt nhanh</h4>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:.78rem;color:var(--t2)">
+        <div style="background:#fff;border-radius:var(--r-sm);padding:9px 11px">
+          <div style="font-weight:800;color:var(--orange);margin-bottom:4px">🍼 Sữa</div>
+          ${r.ml[0]}–${r.ml[1]}ml/ngày<br>${r.f[0]}–${r.f[1]} cữ · ${r.mf[0]}–${r.mf[1]}ml/cữ<br>
+          <span style="font-size:.7rem;color:var(--t3)">${r.n}</span>
+        </div>
+        <div style="background:#fff;border-radius:var(--r-sm);padding:9px 11px">
+          <div style="font-weight:800;color:var(--purple);margin-bottom:4px">🚼 Vệ sinh</div>
+          Tè: ${dr.pMin}–${dr.pMax} lần/ngày<br>${dr.info}<br>
+          <span style="font-size:.7rem;color:var(--red)">${fr.windows.join(' · ')}</span>
+        </div>
+      </div>
+    </div>`;
+  } else if (kCur) {
+    kCur.innerHTML = '';
+  }
+  renderKnowCards();
+}
+
+function renderKnowCards() {
+  const filtered = curKnowCat === 'all'
+    ? KNOW_DATA
+    : KNOW_DATA.filter(k => k.cat === curKnowCat);
+
+  const container = document.getElementById('knowCards');
+  if (!container) return;
+
+  container.innerHTML = filtered.map(k => `
+    <div class="know-card" id="${k.id}">
+      <div class="know-card-hd" onclick="toggleKnowCard('${k.id}')">
+        <div class="know-icon" style="background:${k.iconBg}">${k.icon}</div>
+        <div class="know-hd-text">
+          <div class="know-hd-title">${k.title}</div>
+          <div class="know-hd-sub">${k.sub}</div>
+        </div>
+        <span class="know-arr">▼</span>
+      </div>
+      <div class="know-body">
+        <div class="know-body-inner">${k.content}</div>
+      </div>
+    </div>`).join('');
+}
 
 /* ════════════════════════════════════════
    EDIT FUNCTIONS
