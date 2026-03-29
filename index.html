@@ -503,6 +503,23 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;
   transition:all .25s;white-space:nowrap;z-index:999}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
+/* ── EDIT BADGE on timeline items ── */
+.tl-item{cursor:pointer;transition:background .15s}
+.tl-item:active{background:rgba(255,140,66,.06)}
+.tl-item .tl-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.tl-edit{background:none;border:none;cursor:pointer;color:var(--t3);
+  font-size:.75rem;padding:6px 8px;border-radius:6px;
+  transition:color .15s,background .15s;
+  min-width:32px;min-height:32px;display:flex;align-items:center;justify-content:center;
+  font-weight:700}
+.tl-edit:active{color:var(--orange);background:rgba(255,140,66,.1)}
+/* Edit sheet header with mode badge */
+.sh-mode-badge{display:inline-flex;align-items:center;gap:5px;
+  background:rgba(255,140,66,.12);color:var(--orange);
+  border-radius:var(--r-full);padding:3px 10px;
+  font-size:.7rem;font-weight:700;margin-bottom:14px}
+.sh-mode-badge.edit-mode{background:rgba(99,102,241,.1);color:var(--indigo)}
+
 /* ── RESPONSIVE ── */
 /* ★ sh-body: scrollable inner content with bottom padding */
 .sh-body{
@@ -558,7 +575,7 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;
   <div class="hdr-inner">
     <div class="hdr-brand">
       <span style="font-size:1.3rem">🍼</span>
-      <h1>Little Kiwi</h1>
+      <h1>BéYêu</h1>
       <div class="sync-dot" id="syncDot" title="Trạng thái kết nối"></div>
     </div>
     <div class="hdr-right">
@@ -903,6 +920,147 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- ═══ EDIT MILK SHEET ═══ -->
+<div class="sh-overlay" id="shOvEditMilk" onclick="closeEditSheet('milk')"></div>
+<div class="sheet" id="shEditMilk">
+  <div class="sh-handle"></div>
+  <div class="sh-body">
+    <div class="sh-mode-badge edit-mode">✏️ Chỉnh sửa cữ bú</div>
+    <div class="sh-title" style="margin-bottom:12px">🍼 Sửa thông tin cữ bú</div>
+    <input type="hidden" id="editMilkId">
+
+    <div class="field"><label>Loại sữa</label>
+      <div class="type-toggle">
+        <div class="type-btn" id="ett-mother" onclick="selectEditMilkType('mother')">👩 Bú mẹ<br>trực tiếp</div>
+        <div class="type-btn" id="ett-expressed" onclick="selectEditMilkType('expressed')">🍶 Sữa mẹ<br>vắt ra</div>
+        <div class="type-btn" id="ett-formula" onclick="selectEditMilkType('formula')">🥛 Sữa<br>công thức</div>
+      </div>
+    </div>
+
+    <div id="editMotherSection">
+      <div class="min-section">
+        <label>⏱ Thời gian bú (phút)</label>
+        <div class="min-display"><span id="editMinVal">15</span> <span>phút</span></div>
+        <input type="range" id="editMinSlider" min="1" max="60" value="15"
+          oninput="document.getElementById('editMinVal').textContent=this.value;calcEditEstMl()">
+        <div class="min-hint" id="editEstMlHint">≈ Ước tính <b>60–90ml</b></div>
+      </div>
+    </div>
+    <div id="editMlSection" style="display:none">
+      <div class="field">
+        <label>Lượng sữa (ml)</label>
+        <div class="ml-chips" id="editMlChips">
+          <span class="ml-chip" onclick="pickEditMl(60)">60</span>
+          <span class="ml-chip" onclick="pickEditMl(80)">80</span>
+          <span class="ml-chip" onclick="pickEditMl(100)">100</span>
+          <span class="ml-chip" onclick="pickEditMl(120)">120</span>
+          <span class="ml-chip" onclick="pickEditMl(150)">150</span>
+          <span class="ml-chip" onclick="pickEditMl(180)">180</span>
+          <span class="ml-chip" onclick="pickEditMl(200)">200</span>
+          <span class="ml-chip" onclick="pickEditMl(240)">240</span>
+        </div>
+        <input type="number" id="editMlAmt" placeholder="Nhập số ml..." min="10" max="400"
+          oninput="clearEditChips()">
+      </div>
+    </div>
+
+    <div class="f-row">
+      <div class="field"><label>Giờ bú</label><input type="time" id="editMTime"></div>
+      <div class="field" id="editSideField">
+        <label>Bên bú</label>
+        <select id="editMSide">
+          <option value="both">Cả hai bên</option>
+          <option value="left">Bên trái</option>
+          <option value="right">Bên phải</option>
+        </select>
+      </div>
+    </div>
+    <div class="field"><label>Ghi chú</label>
+      <input type="text" id="editMNote" placeholder="Ghi chú...">
+    </div>
+    <button class="btn btn-orange" onclick="saveEditMilk()">💾 Lưu thay đổi</button>
+    <button class="btn btn-ghost" style="margin-top:8px;margin-bottom:4px" onclick="closeEditSheet('milk')">Huỷ bỏ</button>
+  </div>
+</div>
+
+<!-- ═══ EDIT TOILET SHEET ═══ -->
+<div class="sh-overlay" id="shOvEditToilet" onclick="closeEditSheet('toilet')"></div>
+<div class="sheet" id="shEditToilet">
+  <div class="sh-handle"></div>
+  <div class="sh-body">
+    <div class="sh-mode-badge edit-mode">✏️ Chỉnh sửa vệ sinh</div>
+    <div class="sh-title" style="margin-bottom:12px">🚼 Sửa ghi nhận vệ sinh</div>
+    <input type="hidden" id="editToiletId">
+    <div class="f-row">
+      <div class="field"><label>Giờ</label><input type="time" id="editTTime"></div>
+      <div class="field"><label>Loại</label>
+        <select id="editTType" onchange="toggleEditPoop()">
+          <option value="pee">💧 Tè (đi nhẹ)</option>
+          <option value="poop">💩 Ị (đi nặng)</option>
+          <option value="both">💧💩 Cả hai</option>
+        </select>
+      </div>
+    </div>
+    <div id="editPoopF">
+      <div class="f-row">
+        <div class="field"><label>Màu phân</label>
+          <select id="editTColor">
+            <option value="normal">🟡 Vàng (bình thường)</option>
+            <option value="green">🟢 Xanh</option>
+            <option value="brown">🟤 Nâu</option>
+            <option value="black">⚫ Đen</option>
+            <option value="red">🔴 Đỏ/máu ⚠️</option>
+            <option value="white">⚪ Trắng/xám ⚠️</option>
+          </select>
+        </div>
+        <div class="field"><label>Tính chất</label>
+          <select id="editTTex">
+            <option value="normal">Bình thường</option>
+            <option value="loose">Lỏng/sệt</option>
+            <option value="watery">Toé nước</option>
+            <option value="hard">Cứng/khô</option>
+            <option value="mucus">Có nhầy</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="field"><label>Ghi chú</label>
+      <input type="text" id="editTNote" placeholder="Ghi chú...">
+    </div>
+    <button class="btn btn-purple" onclick="saveEditToilet()">💾 Lưu thay đổi</button>
+    <button class="btn btn-ghost" style="margin-top:8px;margin-bottom:4px" onclick="closeEditSheet('toilet')">Huỷ bỏ</button>
+  </div>
+</div>
+
+<!-- ═══ EDIT MOOD SHEET ═══ -->
+<div class="sh-overlay" id="shOvEditMood" onclick="closeEditSheet('mood')"></div>
+<div class="sheet" id="shEditMood">
+  <div class="sh-handle"></div>
+  <div class="sh-body">
+    <div class="sh-mode-badge edit-mode">✏️ Chỉnh sửa trạng thái</div>
+    <div class="sh-title" style="margin-bottom:12px">😴 Sửa ghi nhận trạng thái</div>
+    <input type="hidden" id="editMoodId">
+    <div class="field"><label>Giờ xảy ra</label><input type="time" id="editMoTime"></div>
+    <div class="field">
+      <label>Trạng thái bé</label>
+      <div class="mood-chips">
+        <div class="mood-chip" id="emc-cry" onclick="selEditMood('cry')">😭 Khóc nhiều<br><small>Khó dỗ, khóc dai</small></div>
+        <div class="mood-chip" id="emc-fussy" onclick="selEditMood('fussy')">😤 Quấy nhẹ<br><small>Cáu kỉnh, khó chịu</small></div>
+        <div class="mood-chip" id="emc-ok" onclick="selEditMood('ok')">😊 Ổn định<br><small>Vui vẻ</small></div>
+        <div class="mood-chip" id="emc-active" onclick="selEditMood('active')">🌙 Thức đêm<br><small>Tỉnh giấc, khó ngủ</small></div>
+      </div>
+    </div>
+    <div class="field"><label>Thời gian kéo dài (phút)</label>
+      <input type="number" id="editMoDur" min="1" max="180" value="15">
+    </div>
+    <div class="field"><label>Ghi chú</label>
+      <input type="text" id="editMoNote" placeholder="Ghi chú...">
+    </div>
+    <button class="btn btn-indigo" onclick="saveEditMood()">💾 Lưu thay đổi</button>
+    <button class="btn btn-ghost" style="margin-top:8px;margin-bottom:4px" onclick="closeEditSheet('mood')">Huỷ bỏ</button>
+  </div>
+</div>
 
 <script>
 /* ════════════════════════════════════════
@@ -1447,14 +1605,17 @@ function renderMilk(day) {
     if (l.type==='mother') desc += ` (~${l.minutes||'?'}ph)`;
     desc += ` · ${TLN[l.type]||l.type}`;
     if (l.side && l.type==='mother') desc += ` · ${SD[l.side]||''}`;
-    return `<div class="tl-item">
+    return `<div class="tl-item" onclick="editMilk(${l.id})">
       <div class="tl-ic milk">🍼</div>
       <div class="tl-body">
         <div class="tl-time">${l.time} ${authorBadge(l.by)}</div>
         <div class="tl-desc">${desc}</div>
         ${l.note?`<div class="tl-note">📝 ${l.note}</div>`:''}
       </div>
-      <button class="tl-del" onclick="delMilk(${l.id})">✕</button>
+      <div class="tl-actions">
+        <button class="tl-edit" onclick="event.stopPropagation();editMilk(${l.id})">✏️</button>
+        <button class="tl-del" onclick="event.stopPropagation();delMilk(${l.id})">✕</button>
+      </div>
     </div>`;
   }).join('');
 }
@@ -1484,14 +1645,18 @@ function renderToilet(day) {
   const CL={normal:'🟡 Vàng BT',green:'🟢 Xanh',brown:'🟤 Nâu',black:'⚫ Đen',red:'🔴 Đỏ/máu ⚠️',white:'⚪ Trắng ⚠️'};
   const TX={normal:'BT',loose:'Lỏng',watery:'Toé nước',hard:'Cứng',mucus:'Có nhầy'};
   tl.innerHTML = [...logs].reverse().map(l=>`
-    <div class="tl-item">
+    <div class="tl-item" onclick="editToilet(${l.id})">
       <div class="tl-ic ${l.type==='pee'?'pee':'poop'}">${TI[l.type]||'🚼'}</div>
       <div class="tl-body">
         <div class="tl-time">${l.time} ${authorBadge(l.by)}</div>
         <div class="tl-desc">${TL2[l.type]||l.type}</div>
         ${(l.type==='poop'||l.type==='both')?`<div class="tl-note">${CL[l.color]||''} · ${TX[l.texture]||''}</div>`:''}
+        ${l.note?`<div class="tl-note">📝 ${l.note}</div>`:''}
       </div>
-      <button class="tl-del" onclick="delToilet(${l.id})">✕</button>
+      <div class="tl-actions">
+        <button class="tl-edit" onclick="event.stopPropagation();editToilet(${l.id})">✏️</button>
+        <button class="tl-del" onclick="event.stopPropagation();delToilet(${l.id})">✕</button>
+      </div>
     </div>`).join('');
 }
 
@@ -1618,14 +1783,17 @@ function renderMood(day) {
   const MI={cry:'😭',fussy:'😤',ok:'😊',active:'🌙'};
   const ML={cry:'Khóc nhiều',fussy:'Quấy nhẹ',ok:'Ổn định',active:'Thức đêm'};
   tl.innerHTML=[...logs].reverse().map(l=>`
-    <div class="tl-item">
+    <div class="tl-item" onclick="editMood(${l.id})">
       <div class="tl-ic mood">${MI[l.mood]||'😶'}</div>
       <div class="tl-body">
         <div class="tl-time">${l.time} ${authorBadge(l.by)}</div>
         <div class="tl-desc">${ML[l.mood]||l.mood} · ${l.dur} phút</div>
         ${l.note?`<div class="tl-note">📝 ${l.note}</div>`:''}
       </div>
-      <button class="tl-del" onclick="delMood(${l.id})">✕</button>
+      <div class="tl-actions">
+        <button class="tl-edit" onclick="event.stopPropagation();editMood(${l.id})">✏️</button>
+        <button class="tl-del" onclick="event.stopPropagation();delMood(${l.id})">✕</button>
+      </div>
     </div>`).join('');
 }
 
@@ -1837,6 +2005,178 @@ function switchTab(name,btn) {
    TOAST
 ════════════════════════════════════════ */
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+/* ════════════════════════════════════════
+   EDIT FUNCTIONS
+════════════════════════════════════════ */
+
+/* ── Edit sheet open/close ── */
+function openEditSheet(type) {
+  const cap = type.charAt(0).toUpperCase()+type.slice(1);
+  document.getElementById('shEdit'+cap).classList.add('open');
+  document.getElementById('shOvEdit'+cap).classList.add('open');
+}
+function closeEditSheet(type) {
+  const cap = type.charAt(0).toUpperCase()+type.slice(1);
+  document.getElementById('shEdit'+cap).classList.remove('open');
+  document.getElementById('shOvEdit'+cap).classList.remove('open');
+}
+
+/* ─────────── MILK EDIT ─────────── */
+let editMilkType = 'mother';
+
+function selectEditMilkType(t) {
+  editMilkType = t;
+  ['mother','expressed','formula'].forEach(x =>
+    document.getElementById('ett-'+x).classList.toggle('sel', x===t)
+  );
+  document.getElementById('editMotherSection').style.display = t==='mother' ? '' : 'none';
+  document.getElementById('editMlSection').style.display     = t==='mother' ? 'none' : '';
+  document.getElementById('editSideField').style.display     = t==='mother' ? '' : 'none';
+}
+function calcEditEstMl() {
+  const min = parseInt(document.getElementById('editMinSlider').value)||15;
+  document.getElementById('editEstMlHint').innerHTML =
+    `≈ Ước tính <b>${min*4}–${min*6}ml</b> · ~4–6ml/phút`;
+}
+function pickEditMl(v) {
+  document.getElementById('editMlAmt').value = v;
+  document.querySelectorAll('#editMlChips .ml-chip').forEach(c =>
+    c.classList.toggle('sel', parseInt(c.textContent)===v)
+  );
+}
+function clearEditChips() {
+  document.querySelectorAll('#editMlChips .ml-chip').forEach(c => c.classList.remove('sel'));
+}
+
+function editMilk(id) {
+  const day = getDay(cur);
+  const log = day.milk.find(l => l.id === id);
+  if (!log) return;
+  document.getElementById('editMilkId').value = id;
+  document.getElementById('editMTime').value  = log.time;
+  document.getElementById('editMNote').value  = log.note || '';
+  selectEditMilkType(log.type || 'mother');
+  if ((log.type||'mother') === 'mother') {
+    const mins = log.minutes || 15;
+    document.getElementById('editMinSlider').value = mins;
+    document.getElementById('editMinVal').textContent = mins;
+    calcEditEstMl();
+  } else {
+    document.getElementById('editMlAmt').value = log.amount || '';
+    clearEditChips();
+  }
+  const sideEl = document.getElementById('editMSide');
+  if (sideEl && log.side) sideEl.value = log.side;
+  openEditSheet('milk');
+}
+
+function saveEditMilk() {
+  const id   = parseInt(document.getElementById('editMilkId').value);
+  const time = document.getElementById('editMTime').value;
+  const note = document.getElementById('editMNote').value.trim();
+  if (!time) { showToast('⏰ Vui lòng nhập giờ'); return; }
+  let amount, minutes = null;
+  if (editMilkType === 'mother') {
+    minutes = parseInt(document.getElementById('editMinSlider').value)||15;
+    amount  = Math.round(minutes * 5);
+  } else {
+    amount = parseInt(document.getElementById('editMlAmt').value);
+    if (!amount||amount<5) { showToast('🍼 Vui lòng nhập lượng ml'); return; }
+  }
+  const sideEl = document.getElementById('editMSide');
+  const side   = (editMilkType==='mother' && sideEl) ? sideEl.value : null;
+  const day = getDay(cur);
+  const idx = day.milk.findIndex(l => l.id === id);
+  if (idx < 0) { showToast('Không tìm thấy bản ghi'); return; }
+  day.milk[idx] = { ...day.milk[idx], time, amount, type:editMilkType, note, minutes, side };
+  day.milk.sort((a,b) => a.time.localeCompare(b.time));
+  save(cur); closeEditSheet('milk'); renderAll();
+  showToast('✅ Đã cập nhật ' + amount + 'ml lúc ' + time);
+}
+
+/* ─────────── TOILET EDIT ─────────── */
+function toggleEditPoop() {
+  const t = document.getElementById('editTType').value;
+  document.getElementById('editPoopF').style.display = t==='pee' ? 'none' : 'block';
+}
+
+function editToilet(id) {
+  const day = getDay(cur);
+  const log = day.toilet.find(l => l.id === id);
+  if (!log) return;
+  document.getElementById('editToiletId').value = id;
+  document.getElementById('editTTime').value    = log.time;
+  document.getElementById('editTNote').value    = log.note || '';
+  const typeEl = document.getElementById('editTType');
+  if (typeEl) typeEl.value = log.type || 'pee';
+  const colorEl = document.getElementById('editTColor');
+  if (colorEl) colorEl.value = log.color || 'normal';
+  const texEl = document.getElementById('editTTex');
+  if (texEl) texEl.value = log.texture || 'normal';
+  toggleEditPoop();
+  openEditSheet('toilet');
+}
+
+function saveEditToilet() {
+  const id      = parseInt(document.getElementById('editToiletId').value);
+  const time    = document.getElementById('editTTime').value;
+  const type    = document.getElementById('editTType').value;
+  const color   = document.getElementById('editTColor').value;
+  const texture = document.getElementById('editTTex').value;
+  const note    = document.getElementById('editTNote').value.trim();
+  if (!time) { showToast('⏰ Vui lòng nhập giờ'); return; }
+  const day = getDay(cur);
+  const idx = day.toilet.findIndex(l => l.id === id);
+  if (idx < 0) { showToast('Không tìm thấy bản ghi'); return; }
+  day.toilet[idx] = { ...day.toilet[idx], time, type, color, texture, note };
+  day.toilet.sort((a,b) => a.time.localeCompare(b.time));
+  save(cur); closeEditSheet('toilet'); renderAll();
+  const lb = {pee:'Đi tè 💧',poop:'Đi ị 💩',both:'Tè + ị 💧💩'};
+  showToast('✅ Đã cập nhật ' + (lb[type]||type) + ' lúc ' + time);
+  if (color==='red'||color==='white') setTimeout(()=>showToast('⚠️ Phân màu bất thường!'),2400);
+}
+
+/* ─────────── MOOD EDIT ─────────── */
+let editMoodVal = 'fussy';
+
+function selEditMood(m) {
+  editMoodVal = m;
+  const map = {cry:'sel-cry',fussy:'sel-fussy',ok:'sel-ok',active:'sel-active'};
+  ['cry','fussy','ok','active'].forEach(x => {
+    const el = document.getElementById('emc-'+x);
+    if (el) el.className = 'mood-chip' + (x===m ? ' '+map[m] : '');
+  });
+}
+
+function editMood(id) {
+  const day = getDay(cur);
+  const log = day.mood.find(l => l.id === id);
+  if (!log) return;
+  document.getElementById('editMoodId').value  = id;
+  document.getElementById('editMoTime').value  = log.time;
+  document.getElementById('editMoDur').value   = log.dur || 15;
+  document.getElementById('editMoNote').value  = log.note || '';
+  selEditMood(log.mood || 'fussy');
+  openEditSheet('mood');
+}
+
+function saveEditMood() {
+  const id   = parseInt(document.getElementById('editMoodId').value);
+  const time = document.getElementById('editMoTime').value;
+  const dur  = parseInt(document.getElementById('editMoDur').value)||15;
+  const note = document.getElementById('editMoNote').value.trim();
+  const mood = editMoodVal || 'fussy';
+  if (!time) { showToast('⏰ Vui lòng nhập giờ'); return; }
+  const day = getDay(cur);
+  const idx = day.mood.findIndex(l => l.id === id);
+  if (idx < 0) { showToast('Không tìm thấy bản ghi'); return; }
+  day.mood[idx] = { ...day.mood[idx], time, mood, dur, note };
+  day.mood.sort((a,b) => a.time.localeCompare(b.time));
+  save(cur); closeEditSheet('mood'); renderAll();
+  const lb = {cry:'Khóc nhiều 😭',fussy:'Quấy nhẹ 😤',ok:'Ổn định 😊',active:'Thức đêm 🌙'};
+  showToast('✅ Đã cập nhật: ' + (lb[mood]||mood) + ' lúc ' + time);
+}
 
 /* ════════════════════════════════════════
    INIT
