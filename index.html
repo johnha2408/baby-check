@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#FF8C42">
+<title>BéYêu Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --orange:#FF8C42; --orange-d:#E8751E; --coral:#FF6B6B;
+  --mint:#34D399; --mint-bg:#ECFDF5;
+  --sky:#38BDF8; --sky-bg:#F0F9FF;
+  --purple:#A78BFA; --purple-bg:#F5F3FF;
+  --amber:#F59E0B; --amber-bg:#FFFBEB;
+  --red:#EF4444; --red-bg:#FEF2F2;
+  --bg:#FFF7F0; --surface:#FFFFFF; --surface2:#FFF3E8;
+  --border:#FFE4CC; --border2:#F3F4F6;
+  --t1:#1C0A00; --t2:#6B4226; --t3:#B07040;
+  --sh-sm:0 1px 3px rgba(180,90,30,.10);
+  --sh-md:0 4px 16px rgba(180,90,30,.12);
+  --sh-lg:0 8px 32px rgba(180,90,30,.16);
+  --r-sm:10px; --r-md:16px; --r-lg:22px; --r-full:999px;
+  --tab-h:60px;
+  --sat:env(safe-area-inset-top,0px);
+  --sab:env(safe-area-inset-bottom,0px);
+  --font:'Nunito',sans-serif;
+  --font-d:'Sora',sans-serif;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{height:100%;scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100%;padding-bottom:calc(var(--tab-h) + var(--sab) + 16px);overscroll-behavior:none}
+
+/* HEADER */
+.app-header{position:sticky;top:0;z-index:200;background:linear-gradient(135deg,var(--orange) 0%,var(--coral) 100%);padding:calc(var(--sat) + 10px) 16px 14px;box-shadow:0 2px 12px rgba(255,107,107,.25)}
+.hdr-inner{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.hdr-brand{display:flex;align-items:center;gap:8px}
+.hdr-brand h1{font-family:var(--font-d);font-size:1.25rem;font-weight:800;color:#fff;letter-spacing:-.5px}
+.hdr-icon{font-size:1.4rem}
+.age-pill{background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);border-radius:var(--r-full);padding:5px 12px;font-size:.75rem;font-weight:700;color:#fff;white-space:nowrap;cursor:pointer;display:flex;align-items:center;gap:5px;transition:background .2s}
+.age-pill:active{background:rgba(255,255,255,.38)}
+.date-strip{display:flex;align-items:center;gap:6px;margin-top:8px}
+.date-nav{background:rgba(255,255,255,.2);border:none;border-radius:var(--r-sm);width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;cursor:pointer;transition:background .15s;flex-shrink:0}
+.date-nav:active{background:rgba(255,255,255,.38)}
+.date-disp{flex:1;text-align:center;font-size:.82rem;font-weight:700;color:#fff;cursor:pointer;padding:4px;border-radius:var(--r-sm);transition:background .15s}
+.date-disp:active{background:rgba(255,255,255,.15)}
+
+/* BOTTOM NAV */
+.bot-nav{position:fixed;bottom:0;left:0;right:0;z-index:300;background:var(--surface);border-top:1px solid var(--border);padding-bottom:var(--sab);box-shadow:0 -4px 20px rgba(180,90,30,.10);display:flex;height:calc(var(--tab-h) + var(--sab))}
+.nav-btn{flex:1;border:none;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;padding:8px 4px 0;position:relative;transition:all .2s}
+.nav-btn .n-icon{font-size:1.3rem;transition:transform .2s}
+.nav-btn .n-lbl{font-family:var(--font);font-size:.65rem;font-weight:700;color:var(--t3);transition:color .2s}
+.nav-btn.active .n-icon{transform:translateY(-2px)}
+.nav-btn.active .n-lbl{color:var(--orange)}
+.nav-btn.active::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:28px;height:3px;background:linear-gradient(90deg,var(--orange),var(--coral));border-radius:0 0 3px 3px}
+
+/* SECTIONS */
+.section{display:none;animation:fadeUp .25s ease}
+.section.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.pad{padding:14px 14px 0}
+
+/* CARD */
+.card{background:var(--surface);border-radius:var(--r-lg);padding:16px;margin-bottom:12px;box-shadow:var(--sh-md);border:1px solid rgba(255,228,204,.6)}
+.card-hd{display:flex;align-items:center;gap:7px;font-family:var(--font-d);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--t3);margin-bottom:14px}
+.card-hd .dot{width:6px;height:6px;border-radius:50%;background:var(--orange);flex-shrink:0}
+
+/* SHEET */
+.sh-overlay{position:fixed;inset:0;z-index:500;background:rgba(28,10,0,.45);backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity .25s}
+.sh-overlay.open{opacity:1;pointer-events:all}
+.sheet{position:fixed;bottom:0;left:0;right:0;z-index:600;background:var(--surface);border-radius:24px 24px 0 0;padding:0 16px calc(var(--sab) + 16px);transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1.2,.6,1);max-height:92vh;overflow-y:auto}
+.sheet.open{transform:translateY(0)}
+.sh-handle{width:36px;height:4px;border-radius:2px;background:var(--border);margin:12px auto 16px}
+.sh-title{font-family:var(--font-d);font-size:1rem;font-weight:800;color:var(--t1);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+
+/* INPUTS */
+.field{margin-bottom:12px}
+.field label{display:block;font-size:.72rem;font-weight:700;color:var(--t2);margin-bottom:5px}
+.field input,.field select{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-md);padding:12px 14px;font-family:var(--font);font-size:.95rem;color:var(--t1);outline:none;transition:border-color .2s,box-shadow .2s;-webkit-appearance:none;appearance:none}
+.field input:focus,.field select:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,140,66,.12)}
+.f-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* ML CHIPS */
+.ml-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.ml-chip{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-full);padding:7px 14px;font-size:.82rem;font-weight:700;color:var(--t2);cursor:pointer;transition:all .15s;user-select:none}
+.ml-chip:active,.ml-chip.sel{background:var(--orange);border-color:var(--orange);color:#fff}
+
+/* BUTTONS */
+.btn{display:flex;align-items:center;justify-content:center;gap:7px;border:none;border-radius:var(--r-md);font-family:var(--font-d);font-weight:700;font-size:.9rem;cursor:pointer;width:100%;padding:13px 20px;transition:transform .12s,opacity .12s}
+.btn:active{transform:scale(.97);opacity:.9}
+.btn-orange{background:linear-gradient(135deg,var(--orange),var(--coral));color:#fff;box-shadow:0 4px 16px rgba(255,107,107,.3)}
+.btn-purple{background:linear-gradient(135deg,var(--purple),#7C3AED);color:#fff;box-shadow:0 4px 16px rgba(167,139,250,.3)}
+.btn-ghost{background:var(--surface2);border:1.5px solid var(--border);color:var(--t2)}
+
+/* FAB */
+.fab-group{position:fixed;right:18px;bottom:calc(var(--tab-h) + var(--sab) + 14px);z-index:250;display:flex;flex-direction:column-reverse;align-items:flex-end;gap:10px}
+.fab{border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(255,107,107,.4);transition:transform .2s,box-shadow .2s}
+.fab:active{transform:scale(.93)}
+.fab-main{width:56px;height:56px;font-size:1.6rem;background:linear-gradient(135deg,var(--orange),var(--coral));transition:transform .25s}
+.fab-mini{width:44px;height:44px;font-size:1.2rem;transform:scale(0);opacity:0;transition:transform .22s cubic-bezier(.34,1.56,.64,1),opacity .15s}
+.fab-mini.c-milk{background:linear-gradient(135deg,#FFB347,var(--orange))}
+.fab-mini.c-toilet{background:linear-gradient(135deg,#C4B5FD,var(--purple))}
+.fab-group.exp .fab-mini{transform:scale(1);opacity:1}
+.fab-group.exp .fab-main{transform:rotate(45deg)}
+.fab-row{display:flex;align-items:center;gap:10px}
+.fab-lbl{background:var(--t1);color:#fff;border-radius:6px;padding:5px 10px;font-size:.72rem;font-weight:700;white-space:nowrap;opacity:0;transform:translateX(6px);transition:opacity .15s,transform .15s}
+.fab-group.exp .fab-lbl{opacity:1;transform:translateX(0)}
+
+/* STATS */
+.s-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.s-grid-4{grid-template-columns:repeat(4,1fr)}
+.sbox{background:var(--surface);border-radius:var(--r-md);padding:12px 10px;text-align:center;box-shadow:var(--sh-sm);border:1px solid var(--border2);position:relative;overflow:hidden}
+.sbox::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:3px 3px 0 0}
+.sbox.c-o::before{background:linear-gradient(90deg,var(--orange),var(--coral))}
+.sbox.c-m::before{background:linear-gradient(90deg,#6EE7B7,var(--mint))}
+.sbox.c-s::before{background:linear-gradient(90deg,var(--sky),#0EA5E9)}
+.sbox.c-p::before{background:linear-gradient(90deg,var(--purple),#7C3AED)}
+.sbox.c-a::before{background:linear-gradient(90deg,var(--amber),#D97706)}
+.sv{font-family:var(--font-d);font-size:1.5rem;font-weight:800;color:var(--t1);line-height:1}
+.su{font-size:.63rem;color:var(--t3);font-weight:700}
+.sl{font-size:.63rem;color:var(--t2);margin-top:2px}
+
+/* PROGRESS */
+.prog-wrap{margin-bottom:10px}
+.prog-row{display:flex;justify-content:space-between;font-size:.72rem;color:var(--t2);margin-bottom:4px;font-weight:700}
+.prog-track{height:9px;background:var(--border);border-radius:9px;overflow:hidden}
+.prog-fill{height:100%;border-radius:9px;transition:width .7s cubic-bezier(.34,1.56,.64,1)}
+.pf-o{background:linear-gradient(90deg,var(--orange),var(--coral))}
+.pf-m{background:linear-gradient(90deg,#6EE7B7,var(--mint))}
+
+/* STATUS PILL */
+.s-pill{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--r-full);font-size:.8rem;font-weight:700;width:100%;justify-content:center;margin-bottom:12px}
+.pill-g{background:var(--mint-bg);color:#059669;border:1.5px solid #A7F3D0}
+.pill-w{background:var(--amber-bg);color:#B45309;border:1.5px solid #FDE68A}
+.pill-b{background:var(--red-bg);color:var(--red);border:1.5px solid #FECACA}
+.pill-n{background:var(--surface2);color:var(--t3);border:1.5px solid var(--border)}
+
+/* INSIGHT BOX */
+.ins-box{background:linear-gradient(135deg,rgba(255,140,66,.05),rgba(255,107,107,.05));border:1.5px solid rgba(255,140,66,.18);border-radius:var(--r-md);padding:13px;margin-top:10px}
+.ins-box h4{font-size:.78rem;font-weight:800;color:var(--orange);margin-bottom:6px}
+.ins-box p{font-size:.8rem;color:var(--t2);line-height:1.65}
+
+/* TIMELINE */
+.tl-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border2);animation:fadeSlide .25s ease}
+.tl-item:last-child{border-bottom:none}
+@keyframes fadeSlide{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+.tl-ic{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+.tl-ic.milk{background:rgba(255,140,66,.12)}
+.tl-ic.pee{background:rgba(56,189,248,.15)}
+.tl-ic.poop{background:rgba(167,139,250,.15)}
+.tl-body{flex:1;min-width:0}
+.tl-time{font-size:.72rem;font-weight:700;color:var(--t3)}
+.tl-desc{font-size:.88rem;font-weight:700;color:var(--t1)}
+.tl-note{font-size:.72rem;color:var(--t2);margin-top:1px}
+.tl-del{background:none;border:none;cursor:pointer;color:#FCA5A5;font-size:1rem;padding:6px;border-radius:6px;transition:color .15s,background .15s;flex-shrink:0;min-width:32px;min-height:32px;display:flex;align-items:center;justify-content:center}
+.tl-del:hover,.tl-del:active{color:var(--red);background:var(--red-bg)}
+
+/* HOUR CHART */
+.h-chart{display:flex;align-items:flex-end;gap:2px;height:64px;margin:10px 0 4px}
+.hc-col{flex:1;display:flex;flex-direction:column;align-items:center}
+.hc-bar{width:100%;border-radius:3px 3px 0 0;background:linear-gradient(180deg,var(--orange),var(--coral));min-height:2px;transition:height .5s}
+.hc-lbl{font-size:.48rem;color:var(--t3);margin-top:2px}
+
+/* KNOWLEDGE */
+.month-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.mc{background:var(--surface);border-radius:var(--r-md);padding:11px 10px;box-shadow:var(--sh-sm);border:1.5px solid var(--border2);transition:transform .15s}
+.mc:active{transform:scale(.97)}
+.mc.cur{border-color:var(--mint);background:var(--mint-bg)}
+.mc h4{font-size:.75rem;font-weight:800;color:var(--t1);margin-bottom:3px}
+.mc .mv{font-size:.8rem;font-weight:800;color:var(--orange)}
+.mc .ms{font-size:.63rem;color:var(--t3)}
+
+/* FAQ */
+.faq-item{border-radius:var(--r-md);overflow:hidden;margin-bottom:8px;box-shadow:var(--sh-sm);border:1px solid var(--border2)}
+.faq-hd{background:var(--surface);padding:13px 14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;gap:10px;font-weight:700;font-size:.85rem;color:var(--t1);transition:background .15s}
+.faq-hd:active{background:var(--surface2)}
+.faq-arr{font-size:.75rem;color:var(--t3);transition:transform .25s;flex-shrink:0}
+.faq-hd.open .faq-arr{transform:rotate(180deg)}
+.faq-body{display:none;padding:12px 14px;background:var(--surface2);font-size:.82rem;color:var(--t2);line-height:1.7}
+.faq-body.open{display:block}
+
+/* SCORE */
+.score-wrap{display:flex;flex-direction:column;align-items:center;padding:16px 0}
+.score-ring{position:relative;width:110px;height:110px}
+.score-ring svg{transform:rotate(-90deg)}
+.ring-bg{fill:none;stroke:var(--border);stroke-width:8}
+.ring-fill{fill:none;stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset .8s cubic-bezier(.34,1.2,.64,1),stroke .4s}
+.score-num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.sn-v{font-family:var(--font-d);font-size:1.8rem;font-weight:800}
+.sn-m{font-size:.65rem;color:var(--t3);font-weight:700}
+.score-lbl{margin-top:10px;font-weight:700;font-size:.88rem;color:var(--t2);text-align:center}
+
+/* EMPTY */
+.empty{text-align:center;padding:28px 16px;color:var(--t3)}
+.empty .ei{font-size:2.8rem;margin-bottom:8px}
+.empty p{font-size:.82rem;line-height:1.6}
+
+/* MODAL */
+.mod-ov{position:fixed;inset:0;z-index:700;background:rgba(28,10,0,.5);backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.mod-ov.open{opacity:1;pointer-events:all}
+.mod-box{background:var(--surface);border-radius:24px 24px 0 0;padding:20px 20px calc(var(--sab)+20px);width:100%;max-width:480px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1.2,.6,1)}
+.mod-ov.open .mod-box{transform:translateY(0)}
+.mod-title{font-family:var(--font-d);font-size:1rem;font-weight:800;margin-bottom:16px}
+.mod-acts{display:flex;gap:10px;margin-top:16px}
+
+/* POOP COLORS */
+.cg{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.cg-i{padding:7px 9px;border-radius:var(--r-sm);font-size:.73rem;font-weight:600;line-height:1.4}
+
+/* TOAST */
+.toast{position:fixed;bottom:calc(var(--tab-h) + var(--sab) + 80px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--t1);color:#fff;padding:9px 18px;border-radius:var(--r-full);font-size:.8rem;font-weight:700;opacity:0;pointer-events:none;transition:all .25s;white-space:nowrap;z-index:999}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* RESPONSIVE */
+@media(min-width:600px){
+  .pad{max-width:520px;margin:0 auto}
+  .fab-group{right:calc(50% - 260px + 18px)}
+  .bot-nav{max-width:520px;left:50%;transform:translateX(-50%);border-radius:20px 20px 0 0;border:1px solid var(--border);border-bottom:none}
+  .sheet,.mod-box{max-width:520px;left:50%;right:auto;transform:translateX(-50%) translateY(100%)}
+  .sheet.open{transform:translateX(-50%) translateY(0)}
+  .mod-ov.open .mod-box{transform:translateX(-50%) translateY(0)}
+}
+@media(min-width:800px){
+  .pad{max-width:680px}
+  .fab-group{right:calc(50% - 340px + 18px)}
+  .bot-nav{max-width:680px}
+  .month-grid{grid-template-columns:repeat(4,1fr)}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header">
+  <div class="hdr-inner">
+    <div class="hdr-brand">
+      <span class="hdr-icon">🍼</span>
+      <h1>BéYêu</h1>
+    </div>
+    <button class="age-pill" onclick="openDobModal()">
+      <span id="agePillText">Nhập ngày sinh</span>
+      <span style="font-size:.65rem;opacity:.75">✎</span>
+    </button>
+  </div>
+  <div class="date-strip">
+    <button class="date-nav" onclick="shiftDate(-1)" aria-label="Ngày trước">‹</button>
+    <div class="date-disp" onclick="openDateModal()" id="dateDisp">Hôm nay</div>
+    <button class="date-nav" onclick="shiftDate(1)" aria-label="Ngày sau">›</button>
+  </div>
+</header>
+
+<!-- SECTIONS -->
+<!-- MILK -->
+<div class="section active pad" id="sec-milk">
+  <div class="s-grid s-grid-4">
+    <div class="sbox c-o"><div class="sv" id="s-ml">0</div><div class="su">ml</div><div class="sl">Tổng sữa</div></div>
+    <div class="sbox c-m"><div class="sv" id="s-f">0</div><div class="su">cữ</div><div class="sl">Số cữ</div></div>
+    <div class="sbox c-s"><div class="sv" id="s-avg">—</div><div class="su">ml/cữ</div><div class="sl">Trung bình</div></div>
+    <div class="sbox c-a"><div class="sv" id="s-int">—</div><div class="su">giờ</div><div class="sl">Khoảng cách</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-hd"><span class="dot"></span>So với tiêu chuẩn tháng tuổi</div>
+    <div class="s-pill pill-n" id="milkPill">⏳ Nhập ngày sinh để đánh giá</div>
+    <div class="prog-wrap">
+      <div class="prog-row"><span>Tổng ml</span><span id="pMlLbl">0 / — ml</span></div>
+      <div class="prog-track"><div class="prog-fill pf-o" id="pMlF" style="width:0%"></div></div>
+    </div>
+    <div class="prog-wrap">
+      <div class="prog-row"><span>Số cữ bú</span><span id="pFLbl">0 / — cữ</span></div>
+      <div class="prog-track"><div class="prog-fill pf-m" id="pFF" style="width:0%"></div></div>
+    </div>
+    <div class="ins-box" id="milkIns"><h4>💡 Nhận xét</h4><p>Nhập ngày sinh và ghi nhận cữ bú để nhận phân tích chi tiết.</p></div>
+  </div>
+
+  <div class="card">
+    <div class="card-hd"><span class="dot"></span>Phân bố cữ bú trong ngày</div>
+    <div class="h-chart" id="hChart"></div>
+    <div style="display:flex;justify-content:space-between;font-size:.58rem;color:var(--t3)"><span>0h</span><span>6h</span><span>12h</span><span>18h</span><span>24h</span></div>
+    <div class="ins-box" id="hourIns" style="margin-top:10px"><h4>🌙 Phân tích thời điểm bú</h4><p>Ghi nhận ít nhất 2 cữ để phân tích.</p></div>
+  </div>
+
+  <div class="card">
+    <div class="card-hd"><span class="dot"></span>Lịch sử hôm nay</div>
+    <div id="milkTL"><div class="empty"><div class="ei">🍼</div><p>Chưa có cữ bú nào<br><small>Nhấn <b>+</b> góc phải để thêm</small></p></div></div>
+  </div>
+</div>
+
+<!-- TOILET -->
+<div class="section pad" id="sec-toilet">
+  <div class="s-grid">
+    <div class="sbox c-s"><div class="sv" id="s-pee">0</div><div class="su">lần</div><div class="sl">Tè hôm nay</div></div>
+    <div class="sbox c-p"><div class="sv" id="s-poop">0</div><div class="su">lần</div><div class="sl">Ị hôm nay</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-hd"><span class="dot"></span>Đánh giá theo tháng tuổi</div>
+    <div class="s-pill pill-n" id="toiletPill">⏳ Nhập ngày sinh để đánh giá</div>
+    <div class="ins-box" id="toiletIns"><h4>💡 Nhận xét</h4><p>Nhập ngày sinh và ghi nhận vệ sinh để nhận phân tích.</p></div>
+  </div>
+
+  <div class="card">
+    <div class="card-hd"><span class="dot"></span>Ý nghĩa màu phân</div>
+    <div class="cg">
+      <div class="cg-i" style="background:rgba(250,204,21,.12)">🟡 <b>Vàng</b><br>Bình thường (bú mẹ)</div>
+      <div class="cg-i" style="background:rgba(74,222,128,.1)">🟢 <b>Xanh</b><br>Thỉnh thoảng là BT</div>
+      <div class="cg-i" style="background:rgba(161,98,7,.1)">🟤 <b>Nâu</b><br>Bình thường (sữa CT)</div>
+      <div class="cg-i" style="background:rgba(71,85,105,.1)">⚫ <b>Đen</b><br>Ngày đầu (phân su)</div>
+      <div class="cg-i" style="background:rgba(239,68,68,.1)">🔴 <b>Đỏ/máu</b><br>⚠️ Gặp bác sĩ ngay</div>
+      <div class="cg-i" style="background:rgba(148,163,184,.12)">⚪ <b>Trắng/xám</b><br>⚠️ Gặp bác sĩ ngay</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hd"><span class="dot"></span>Lịch sử hôm nay</div>
+    <div id="toiletTL"><div class="empty"><div class="ei">🚼</div><p>Chưa có ghi nhận vệ sinh<br><small>Nhấn <b>+</b> góc phải để thêm</small></p></div></div>
+  </div>
+</div>
+
+<!-- ANALYSIS -->
+<div class="section pad" id="sec-analysis">
+  <div class="card">
+    <div class="card-hd"><span class="dot"></span>Điểm sức khoẻ hôm nay</div>
+    <div class="score-wrap">
+      <div class="score-ring">
+        <svg width="110" height="110" viewBox="0 0 110 110">
+          <circle class="ring-bg" cx="55" cy="55" r="46"/>
+          <circle class="ring-fill" id="rFill" cx="55" cy="55" r="46" stroke="url(#rg)" stroke-dasharray="289" stroke-dashoffset="289"/>
+          <defs><linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#FF8C42"/><stop offset="100%" stop-color="#FF6B6B"/></linearGradient></defs>
+        </svg>
+        <div class="score-num"><div class="sn-v" id="sVal" style="color:var(--t3)">—</div><div class="sn-m">/100</div></div>
+      </div>
+      <div class="score-lbl" id="sLbl">Cần thêm dữ liệu</div>
+    </div>
+  </div>
+  <div class="card" id="anaCard"><div class="card-hd"><span class="dot"></span>Tổng quan</div><div class="empty"><div class="ei">📊</div><p>Nhập ngày sinh và ghi nhận dữ liệu</p></div></div>
+  <div class="card"><div class="card-hd"><span class="dot"></span>Dấu hiệu cần lưu ý</div><div id="warnBox"><div style="font-size:.82rem;color:var(--t3)">Chưa có dữ liệu để đánh giá.</div></div></div>
+  <div class="card"><div class="card-hd"><span class="dot"></span>Lời khuyên cho bé</div><div id="tipsBox"><div style="font-size:.82rem;color:var(--t3)">Ghi nhận ít nhất 1 cữ bú để nhận lời khuyên.</div></div></div>
+</div>
+
+<!-- KNOWLEDGE -->
+<div class="section pad" id="sec-knowledge">
+  <div class="card">
+    <div class="card-hd"><span class="dot"></span>Lượng sữa theo tháng tuổi</div>
+    <p style="font-size:.75rem;color:var(--t3);margin-bottom:12px">Chuẩn WHO & AAP. Mỗi bé có thể ±20%.</p>
+    <div class="month-grid" id="mGrid"></div>
+  </div>
+  <div class="card"><div class="card-hd"><span class="dot"></span>Câu hỏi thường gặp</div><div id="faqList"></div></div>
+  <div class="card">
+    <div class="card-hd"><span class="dot"></span>Khi nào cần gặp bác sĩ?</div>
+    <div style="font-size:.82rem;line-height:1.8;color:var(--t2)">
+      <div style="padding:8px;background:var(--red-bg);border-radius:var(--r-sm);margin-bottom:8px">🔴 <b>Ngay lập tức:</b> Phân đỏ/trắng xám, bỏ bú >4h (dưới 1 tháng), sốt cao, lờ đờ, khóc không ngừng.</div>
+      <div style="padding:8px;background:var(--amber-bg);border-radius:var(--r-sm);margin-bottom:8px">🟡 <b>Theo dõi gấp:</b> Tã ướt <6 lần/ngày (sau ngày 5), sụt cân không hồi phục sau tuần 2, vàng da nặng.</div>
+      <div style="padding:8px;background:var(--mint-bg);border-radius:var(--r-sm)">🟢 <b>Bình thường:</b> Phân xanh thỉnh thoảng, rặn khi đại tiện, bú dài hơn vào tối.</div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bot-nav">
+  <button class="nav-btn active" onclick="switchTab('milk',this)"><span class="n-icon">🍼</span><span class="n-lbl">Sữa</span></button>
+  <button class="nav-btn" onclick="switchTab('toilet',this)"><span class="n-icon">🚼</span><span class="n-lbl">Vệ sinh</span></button>
+  <button class="nav-btn" onclick="switchTab('analysis',this)"><span class="n-icon">📊</span><span class="n-lbl">Phân tích</span></button>
+  <button class="nav-btn" onclick="switchTab('knowledge',this)"><span class="n-icon">📚</span><span class="n-lbl">Kiến thức</span></button>
+</nav>
+
+<!-- FAB -->
+<div class="fab-group" id="fabG">
+  <button class="fab fab-main" onclick="toggleFab()" aria-label="Menu thêm nhanh">＋</button>
+  <div class="fab-row">
+    <span class="fab-lbl">Ghi vệ sinh</span>
+    <button class="fab fab-mini c-toilet" onclick="openSheet('toilet')" aria-label="Ghi vệ sinh">🚼</button>
+  </div>
+  <div class="fab-row">
+    <span class="fab-lbl">Thêm cữ bú</span>
+    <button class="fab fab-mini c-milk" onclick="openSheet('milk')" aria-label="Thêm cữ bú">🍼</button>
+  </div>
+</div>
+
+<!-- MILK SHEET -->
+<div class="sh-overlay" id="shOvMilk" onclick="closeSheet('milk')"></div>
+<div class="sheet" id="shMilk">
+  <div class="sh-handle"></div>
+  <div class="sh-title">🍼 Ghi nhận cữ bú</div>
+  <div class="f-row">
+    <div class="field"><label>Giờ bú</label><input type="time" id="mTime"></div>
+    <div class="field"><label>Loại sữa</label>
+      <select id="mType">
+        <option value="mother">Bú mẹ trực tiếp</option>
+        <option value="expressed">Sữa mẹ vắt</option>
+        <option value="formula">Sữa công thức</option>
+      </select>
+    </div>
+  </div>
+  <div class="field">
+    <label>Lượng sữa (ml) — chọn nhanh</label>
+    <div class="ml-chips">
+      <span class="ml-chip" onclick="pickMl(60)">60</span>
+      <span class="ml-chip" onclick="pickMl(80)">80</span>
+      <span class="ml-chip" onclick="pickMl(100)">100</span>
+      <span class="ml-chip" onclick="pickMl(120)">120</span>
+      <span class="ml-chip" onclick="pickMl(150)">150</span>
+      <span class="ml-chip" onclick="pickMl(180)">180</span>
+      <span class="ml-chip" onclick="pickMl(200)">200</span>
+      <span class="ml-chip" onclick="pickMl(240)">240</span>
+    </div>
+    <input type="number" id="mAmt" placeholder="Hoặc nhập số ml..." min="10" max="400" oninput="clearChips()">
+  </div>
+  <div class="field"><label>Ghi chú (tuỳ chọn)</label><input type="text" id="mNote" placeholder="Bé bú ngoan, ngủ sau bú..."></div>
+  <button class="btn btn-orange" onclick="addMilk()">✅ Lưu cữ bú</button>
+  <button class="btn btn-ghost" style="margin-top:8px" onclick="closeSheet('milk')">Huỷ bỏ</button>
+</div>
+
+<!-- TOILET SHEET -->
+<div class="sh-overlay" id="shOvToilet" onclick="closeSheet('toilet')"></div>
+<div class="sheet" id="shToilet">
+  <div class="sh-handle"></div>
+  <div class="sh-title">🚼 Ghi nhận vệ sinh</div>
+  <div class="f-row">
+    <div class="field"><label>Giờ</label><input type="time" id="tTime"></div>
+    <div class="field"><label>Loại</label>
+      <select id="tType" onchange="togglePoop()">
+        <option value="pee">💧 Tè (đi nhẹ)</option>
+        <option value="poop">💩 Ị (đi nặng)</option>
+        <option value="both">💧💩 Cả hai</option>
+      </select>
+    </div>
+  </div>
+  <div id="poopF">
+    <div class="f-row">
+      <div class="field"><label>Màu phân</label>
+        <select id="tColor">
+          <option value="normal">🟡 Vàng (bình thường)</option>
+          <option value="green">🟢 Xanh</option>
+          <option value="brown">🟤 Nâu</option>
+          <option value="black">⚫ Đen</option>
+          <option value="red">🔴 Đỏ/máu ⚠️</option>
+          <option value="white">⚪ Trắng/xám ⚠️</option>
+        </select>
+      </div>
+      <div class="field"><label>Tính chất</label>
+        <select id="tTex">
+          <option value="normal">Bình thường</option>
+          <option value="loose">Lỏng/sệt</option>
+          <option value="watery">Toé nước</option>
+          <option value="hard">Cứng/khô</option>
+          <option value="mucus">Có nhầy</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <button class="btn btn-purple" onclick="addToilet()">✅ Lưu ghi nhận</button>
+  <button class="btn btn-ghost" style="margin-top:8px" onclick="closeSheet('toilet')">Huỷ bỏ</button>
+</div>
+
+<!-- DOB MODAL -->
+<div class="mod-ov" id="dobMod" onclick="closeMod('dobMod',event)">
+  <div class="mod-box">
+    <div class="mod-title">🎂 Ngày sinh của bé</div>
+    <div class="field"><label>Ngày sinh</label><input type="date" id="dobInp"></div>
+    <div class="mod-acts">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeMod('dobMod')">Đóng</button>
+      <button class="btn btn-orange" style="flex:2" onclick="saveDob()">✅ Lưu</button>
+    </div>
+  </div>
+</div>
+
+<!-- DATE MODAL -->
+<div class="mod-ov" id="dateMod" onclick="closeMod('dateMod',event)">
+  <div class="mod-box">
+    <div class="mod-title">📅 Chọn ngày theo dõi</div>
+    <div class="field"><label>Ngày</label><input type="date" id="dateInp"></div>
+    <div class="mod-acts">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeMod('dateMod')">Đóng</button>
+      <button class="btn btn-orange" style="flex:2" onclick="applyDate()">Chọn ngày này</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== STATE ===== */
+let DB = JSON.parse(localStorage.getItem('by3') || '{}');
+let cur = new Date().toISOString().slice(0,10);
+const getDay = d => { if (!DB[d]) DB[d]={milk:[],toilet:[]}; return DB[d]; };
+const save = () => localStorage.setItem('by3', JSON.stringify(DB));
+const getDob = () => localStorage.getItem('by3_dob') || '';
+
+/* ===== REFERENCE ===== */
+const MILK = {
+  0:{ml:[450,600],f:[8,12],mf:[45,90],n:"Dạ dày bé như trái anh đào (5ml). Bú mỗi 1.5–3h, kể cả ban đêm."},
+  1:{ml:[500,700],f:[8,12],mf:[60,90],n:"Dạ dày bé cỡ trứng gà (30ml). Chưa theo lịch cố định."},
+  2:{ml:[600,800],f:[7,9],mf:[90,120],n:"Bú hiệu quả hơn. Có thể ngủ 3–4h/đêm."},
+  3:{ml:[700,900],f:[6,8],mf:[120,150],n:"Cluster feed buổi chiều/tối là hoàn toàn bình thường."},
+  4:{ml:[750,950],f:[5,7],mf:[120,180],n:"Có thể ngủ đêm dài hơn. Ít cữ nhưng nhiều ml hơn."},
+  5:{ml:[800,1000],f:[5,7],mf:[150,180],n:"Bé xao lãng khi bú — tìm nơi yên tĩnh để cho bú."},
+  6:{ml:[800,1000],f:[4,6],mf:[150,240],n:"Bắt đầu ăn dặm. Sữa vẫn là thức ăn chính."},
+  7:{ml:[700,950],f:[4,5],mf:[150,240],n:"Ăn dặm tăng, có thể bớt 1–2 cữ bú."},
+  8:{ml:[700,900],f:[3,5],mf:[180,240],n:"Sữa vẫn cần ≥500ml/ngày."},
+  9:{ml:[600,900],f:[3,4],mf:[180,240],n:"Tập uống cốc. Bé có thể tự cầm bình."},
+  10:{ml:[600,800],f:[3,4],mf:[180,240],n:"Chuẩn bị chuyển sang sữa bò toàn phần sau 12 tháng."},
+  11:{ml:[500,750],f:[3,4],mf:[180,240],n:"Thức ăn dặm chiếm ~50% dinh dưỡng. Sữa vẫn quan trọng."}
+};
+const DIAP = {
+  0:{pMin:1,pMax:6,info:"1–4 lần/ngày (phân su đen)"},
+  1:{pMin:6,pMax:8,info:"3–5 lần/ngày (vàng sệt)"},
+  2:{pMin:6,pMax:8,info:"1–4 lần/ngày"},
+  3:{pMin:6,pMax:8,info:"Có thể 1 lần/ngày hoặc 1 lần/tuần (bình thường)"},
+  4:{pMin:5,pMax:8,info:"Mỗi 2–3 ngày là bình thường"},
+  5:{pMin:5,pMax:8,info:"Mỗi 1–3 ngày"},
+  6:{pMin:4,pMax:8,info:"Thay đổi do ăn dặm"},
+  7:{pMin:4,pMax:8,info:"Phụ thuộc thức ăn dặm"},
+  8:{pMin:4,pMax:8,info:"Phụ thuộc thức ăn dặm"},
+  9:{pMin:4,pMax:8,info:"1–3 lần/ngày"},
+  10:{pMin:4,pMax:6,info:"1–2 lần/ngày"},
+  11:{pMin:4,pMax:6,info:"1–2 lần/ngày"}
+};
+const FAQS=[
+  {q:"Bú mẹ trực tiếp — làm sao biết đủ sữa?",a:"Dấu hiệu đủ sữa: tã ướt ≥6 lần/ngày (sau ngày 5), tăng cân 150–200g/tuần (3 tháng đầu), bé hài lòng sau bú, ngực mẹ mềm sau khi cho bú."},
+  {q:"Khoảng cách giữa các cữ bú bao lâu?",a:"Tính từ đầu cữ này đến đầu cữ sau: 0–1 tháng: 1.5–3h | 2–3 tháng: 2–3.5h | 4–5 tháng: 3–4h | 6+ tháng: 3.5–5h. Không để bé nhịn >5h ban ngày."},
+  {q:"Bé không tăng cân có đáng lo?",a:"Bình thường mất 5–7% cân lúc sinh trong tuần đầu, hồi phục sau 10–14 ngày. Sau đó: 0–3 tháng +150–200g/tuần | 3–6 tháng ~100g/tuần | 6–12 tháng ~70–85g/tuần."},
+  {q:"Phân xanh — bình thường không?",a:"Thỉnh thoảng là bình thường với bú mẹ. Nếu xanh liên tục + lỏng như nước, bé có thể bú ít sữa béo (hindmilk). Thử cho bú cạn một bên trước."},
+  {q:"Bao lâu bé ị một lần là bình thường?",a:"0–6 tuần: có thể mỗi cữ bú. Sau 6 tuần (bú mẹ): 7–10 ngày bình thường nếu phân mềm. Sữa CT: 1–2 lần/ngày. Táo bón thật: phân cứng như hạt đậu, bé đau rõ."}
+];
+
+/* ===== AGE ===== */
+function getMonths() {
+  const dob=getDob(); if(!dob) return null;
+  const d=Math.floor((new Date(cur)-new Date(dob))/86400000);
+  return d<0?null:Math.floor(d/30.44);
+}
+function getDays() {
+  const dob=getDob(); if(!dob) return null;
+  const d=Math.floor((new Date(cur)-new Date(dob))/86400000);
+  return d<0?null:d;
+}
+function updAgePill() {
+  const dob=getDob();
+  if(!dob){document.getElementById('agePillText').textContent='Nhập ngày sinh';return;}
+  const days=Math.floor((new Date(cur)-new Date(dob))/86400000);
+  if(days<0){document.getElementById('agePillText').textContent='Ngày sinh chưa đúng';return;}
+  const m=Math.floor(days/30.44),w=Math.floor((days%30)/7),d2=days%7;
+  document.getElementById('agePillText').textContent=days<30?`${Math.floor(days/7)}t ${d2}ng`:`${m}th ${w}t ${d2}ng`;
+}
+function updDateDisp() {
+  const today=new Date().toISOString().slice(0,10);
+  const d=new Date(cur+'T00:00:00');
+  const str=d.toLocaleDateString('vi-VN',{weekday:'short',day:'numeric',month:'short'});
+  document.getElementById('dateDisp').textContent=cur===today?'Hôm nay · '+str:str;
+}
+
+/* ===== MODALS ===== */
+function openDobModal(){document.getElementById('dobInp').value=getDob();document.getElementById('dobMod').classList.add('open');}
+function saveDob(){const v=document.getElementById('dobInp').value;if(v){localStorage.setItem('by3_dob',v);updAgePill();renderAll();}document.getElementById('dobMod').classList.remove('open');}
+function openDateModal(){document.getElementById('dateInp').value=cur;document.getElementById('dateMod').classList.add('open');}
+function applyDate(){const v=document.getElementById('dateInp').value;if(v){cur=v;updDateDisp();updAgePill();renderAll();}document.getElementById('dateMod').classList.remove('open');}
+function closeMod(id,e){if(e&&e.target.id!==id)return;document.getElementById(id).classList.remove('open');}
+function shiftDate(n){const d=new Date(cur+'T00:00:00');d.setDate(d.getDate()+n);const nd=d.toISOString().slice(0,10);if(nd>new Date().toISOString().slice(0,10)){showToast('Không thể chọn ngày tương lai');return;}cur=nd;updDateDisp();updAgePill();renderAll();}
+
+/* ===== FAB ===== */
+function toggleFab(){document.getElementById('fabG').classList.toggle('exp');}
+document.addEventListener('click',e=>{if(!document.getElementById('fabG').contains(e.target))document.getElementById('fabG').classList.remove('exp');});
+
+/* ===== SHEETS ===== */
+function openSheet(t) {
+  document.getElementById('fabG').classList.remove('exp');
+  const now=new Date();
+  const hhmm=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  if(t==='milk'){document.getElementById('mTime').value=hhmm;document.getElementById('shMilk').classList.add('open');document.getElementById('shOvMilk').classList.add('open');}
+  else{document.getElementById('tTime').value=hhmm;togglePoop();document.getElementById('shToilet').classList.add('open');document.getElementById('shOvToilet').classList.add('open');}
+}
+function closeSheet(t){document.getElementById('sh'+t.charAt(0).toUpperCase()+t.slice(1)).classList.remove('open');document.getElementById('shOv'+t.charAt(0).toUpperCase()+t.slice(1)).classList.remove('open');}
+function togglePoop(){document.getElementById('poopF').style.display=document.getElementById('tType').value==='pee'?'none':'block';}
+
+/* ===== ML CHIPS ===== */
+function pickMl(v){document.getElementById('mAmt').value=v;document.querySelectorAll('.ml-chip').forEach(c=>c.classList.toggle('sel',parseInt(c.textContent)===v));}
+function clearChips(){document.querySelectorAll('.ml-chip').forEach(c=>c.classList.remove('sel'));}
+
+/* ===== ADD MILK ===== */
+function addMilk(){
+  const time=document.getElementById('mTime').value;
+  const amount=parseInt(document.getElementById('mAmt').value);
+  const type=document.getElementById('mType').value;
+  const note=document.getElementById('mNote').value.trim();
+  if(!time){showToast('⏰ Vui lòng nhập giờ bú');return;}
+  if(!amount||amount<5){showToast('🍼 Vui lòng nhập lượng ml');return;}
+  const day=getDay(cur);
+  day.milk.push({time,amount,type,note,id:Date.now()});
+  day.milk.sort((a,b)=>a.time.localeCompare(b.time));
+  save();
+  document.getElementById('mAmt').value='';
+  document.getElementById('mNote').value='';
+  clearChips();
+  closeSheet('milk');
+  renderAll();
+  showToast(`✅ Đã lưu ${amount}ml lúc ${time}`);
+}
+
+/* ===== ADD TOILET ===== */
+function addToilet(){
+  const time=document.getElementById('tTime').value;
+  const type=document.getElementById('tType').value;
+  const color=document.getElementById('tColor').value;
+  const texture=document.getElementById('tTex').value;
+  if(!time){showToast('⏰ Vui lòng nhập giờ');return;}
+  const day=getDay(cur);
+  day.toilet.push({time,type,color,texture,id:Date.now()});
+  day.toilet.sort((a,b)=>a.time.localeCompare(b.time));
+  save();
+  closeSheet('toilet');
+  renderAll();
+  const lb={pee:'Đi tè 💧',poop:'Đi ị 💩',both:'Tè + ị 💧💩'};
+  showToast(`✅ Đã ghi ${lb[type]} lúc ${time}`);
+  if(color==='red'||color==='white')setTimeout(()=>showToast('⚠️ Phân màu bất thường — xem bác sĩ!'),2400);
+}
+
+/* ===== DELETE ===== */
+function delMilk(id){const d=getDay(cur);d.milk=d.milk.filter(l=>l.id!==id);save();renderAll();}
+function delToilet(id){const d=getDay(cur);d.toilet=d.toilet.filter(l=>l.id!==id);save();renderAll();}
+
+/* ===== RENDER ALL ===== */
+function renderAll(){const d=getDay(cur);renderMilk(d);renderToilet(d);renderAnalysis(d);}
+
+/* ===== RENDER MILK ===== */
+function renderMilk(day){
+  const logs=day.milk||[];
+  const total=logs.reduce((s,l)=>s+l.amount,0);
+  const feeds=logs.length;
+  const avg=feeds?Math.round(total/feeds):0;
+  let intv='—';
+  if(logs.length>=2){const mins=logs.map(l=>{const[h,m]=l.time.split(':');return+h*60+ +m;});const diffs=[];for(let i=1;i<mins.length;i++)diffs.push(mins[i]-mins[i-1]);intv=(diffs.reduce((a,b)=>a+b,0)/diffs.length/60).toFixed(1);}
+  document.getElementById('s-ml').textContent=total;
+  document.getElementById('s-f').textContent=feeds;
+  document.getElementById('s-avg').textContent=avg||'—';
+  document.getElementById('s-int').textContent=intv;
+
+  const mo=getMonths();
+  const ref=mo!==null?MILK[Math.min(mo,11)]:null;
+  if(ref){
+    const[mMin,mMax]=ref.ml,[fMin,fMax]=ref.f;
+    const mp=Math.min(Math.round(total/mMax*100),120);
+    const fp=Math.min(Math.round(feeds/fMax*100),120);
+    document.getElementById('pMlLbl').textContent=`${total} / ${mMin}–${mMax} ml`;
+    document.getElementById('pFLbl').textContent=`${feeds} / ${fMin}–${fMax} cữ`;
+    document.getElementById('pMlF').style.width=mp+'%';
+    document.getElementById('pFF').style.width=fp+'%';
+    let pc,ins;
+    if(total<mMin*.8){setPill('milkPill','b','⚠️ Lượng sữa chưa đủ — cần bổ sung thêm');ins=`Tổng <b>${total}ml</b> thấp hơn tối thiểu <b>${mMin}ml</b>. Tăng số cữ hoặc ml/cữ.<br>📝 ${ref.n}`;}
+    else if(total>mMax*1.15){setPill('milkPill','w','⚠️ Lượng sữa hơi nhiều');ins=`Tổng <b>${total}ml</b> cao hơn tiêu chuẩn <b>${mMax}ml</b>. Theo dõi thêm.<br>📝 ${ref.n}`;}
+    else{setPill('milkPill','g','✅ Lượng sữa hôm nay đạt tiêu chuẩn!');ins=`Tổng <b>${total}ml</b> ✅ | Số cữ: <b>${feeds}</b> (chuẩn ${fMin}–${fMax}) | TB: <b>${avg}ml/cữ</b>.<br>📝 ${ref.n}`;}
+    document.getElementById('milkIns').innerHTML=`<h4>💡 Nhận xét (${getDays()} ngày tuổi)</h4><p>${ins}</p>`;
+  } else {
+    setPill('milkPill','n','⏳ Nhập ngày sinh để đánh giá');
+    document.getElementById('pMlLbl').textContent=`${total} / — ml`;
+    document.getElementById('pFLbl').textContent=`${feeds} / — cữ`;
+    document.getElementById('milkIns').innerHTML='<h4>💡 Nhận xét</h4><p>Nhập ngày sinh của bé để xem đánh giá.</p>';
+  }
+
+  // Hour chart
+  const bk=new Array(24).fill(0);
+  logs.forEach(l=>bk[parseInt(l.time.split(':')[0])]+=l.amount);
+  const mx=Math.max(...bk,1);
+  document.getElementById('hChart').innerHTML=bk.map((v,i)=>`<div class="hc-col"><div class="hc-bar" style="height:${Math.round(v/mx*100)}%"></div>${i%6===0?`<div class="hc-lbl">${i}h</div>`:'<div class="hc-lbl"></div>'}</div>`).join('');
+
+  if(logs.length>=2){
+    const night=logs.filter(l=>{const h=+l.time.split(':')[0];return h>=22||h<6;}).length;
+    const cluster=logs.filter(l=>{const h=+l.time.split(':')[0];return h>=17&&h<22;}).length;
+    let txt='';
+    if(night>3)txt+=`🌙 Bé bú <b>${night} cữ ban đêm</b> (22h–6h) — bình thường ở trẻ nhỏ. `;
+    if(cluster>=2)txt+=`🌆 <b>Cluster feed ${cluster} cữ</b> buổi tối — bé đang tích trữ sữa cho đêm, bình thường. `;
+    if(!txt)txt=`Phân bố cữ bú đều trong ngày. Cữ đêm (22h–6h): ${night} cữ.`;
+    document.getElementById('hourIns').innerHTML=`<h4>🌙 Phân tích thời điểm bú</h4><p>${txt}</p>`;
+  }
+
+  const tl=document.getElementById('milkTL');
+  if(!logs.length){tl.innerHTML='<div class="empty"><div class="ei">🍼</div><p>Chưa có cữ bú nào<br><small>Nhấn <b>+</b> góc phải để thêm</small></p></div>';return;}
+  const TL={mother:'Bú mẹ trực tiếp',expressed:'Sữa mẹ vắt',formula:'Sữa công thức'};
+  tl.innerHTML=[...logs].reverse().map(l=>`<div class="tl-item"><div class="tl-ic milk">🍼</div><div class="tl-body"><div class="tl-time">${l.time}</div><div class="tl-desc">${l.amount}ml · ${TL[l.type]||l.type}</div>${l.note?`<div class="tl-note">📝 ${l.note}</div>`:''}</div><button class="tl-del" onclick="delMilk(${l.id})" aria-label="Xoá">✕</button></div>`).join('');
+}
+
+/* ===== RENDER TOILET ===== */
+function renderToilet(day){
+  const logs=day.toilet||[];
+  const pees=logs.filter(l=>l.type==='pee'||l.type==='both').length;
+  const poops=logs.filter(l=>l.type==='poop'||l.type==='both').length;
+  document.getElementById('s-pee').textContent=pees;
+  document.getElementById('s-poop').textContent=poops;
+  const mo=getMonths();
+  const ref=mo!==null?DIAP[Math.min(mo,11)]:null;
+  if(ref){
+    if(pees<ref.pMin){setPill('toiletPill','b',`⚠️ Tè ít (${pees}/${ref.pMin}–${ref.pMax}) — bé có thể bú chưa đủ`);document.getElementById('toiletIns').innerHTML=`<h4>💡 Nhận xét</h4><p>Tè <b>${pees} lần</b>, cần ít nhất <b>${ref.pMin} lần</b>/ngày. Kiểm tra lượng sữa.<br>Tiêu chuẩn đi nặng: <b>${ref.info}</b></p>`;}
+    else{setPill('toiletPill','g',`✅ Tè ổn (${pees} lần, chuẩn ${ref.pMin}–${ref.pMax})`);document.getElementById('toiletIns').innerHTML=`<h4>💡 Nhận xét</h4><p>Tè <b>${pees} lần</b> ✅ | Ị hôm nay: <b>${poops} lần</b><br>Tiêu chuẩn đi nặng: <b>${ref.info}</b></p>`;}
+    const bad=logs.filter(l=>(l.type==='poop'||l.type==='both')&&(l.color==='red'||l.color==='white'));
+    if(bad.length)document.getElementById('toiletIns').innerHTML+=`<div style="margin-top:10px;padding:10px;background:var(--red-bg);border-radius:var(--r-sm);border:1.5px solid #FECACA;font-size:.82rem"><b style="color:var(--red)">🚨 CẢNH BÁO:</b> Phân màu bất thường — hãy đến gặp bác sĩ ngay!</div>`;
+  } else {
+    setPill('toiletPill','n','⏳ Nhập ngày sinh để đánh giá');
+    document.getElementById('toiletIns').innerHTML='<h4>💡 Nhận xét</h4><p>Nhập ngày sinh để đánh giá.</p>';
+  }
+  const tl=document.getElementById('toiletTL');
+  if(!logs.length){tl.innerHTML='<div class="empty"><div class="ei">🚼</div><p>Chưa có ghi nhận vệ sinh<br><small>Nhấn <b>+</b> góc phải để thêm</small></p></div>';return;}
+  const TI={pee:'💧',poop:'💩',both:'💧💩'},TL2={pee:'Đi tè',poop:'Đi ị',both:'Tè + ị'};
+  const CL={normal:'🟡 Vàng BT',green:'🟢 Xanh',brown:'🟤 Nâu',black:'⚫ Đen',red:'🔴 Đỏ/máu ⚠️',white:'⚪ Trắng ⚠️'};
+  const TX={normal:'Bình thường',loose:'Lỏng',watery:'Toé nước',hard:'Cứng',mucus:'Có nhầy'};
+  tl.innerHTML=[...logs].reverse().map(l=>`<div class="tl-item"><div class="tl-ic ${l.type==='pee'?'pee':'poop'}">${TI[l.type]||'🚼'}</div><div class="tl-body"><div class="tl-time">${l.time}</div><div class="tl-desc">${TL2[l.type]||l.type}</div>${(l.type==='poop'||l.type==='both')?`<div class="tl-note">${CL[l.color]||''} · ${TX[l.texture]||''}</div>`:''}</div><button class="tl-del" onclick="delToilet(${l.id})" aria-label="Xoá">✕</button></div>`).join('');
+}
+
+/* ===== RENDER ANALYSIS ===== */
+function renderAnalysis(day){
+  const ml=day.milk||[],tl=day.toilet||[];
+  const total=ml.reduce((s,l)=>s+l.amount,0),feeds=ml.length;
+  const pees=tl.filter(l=>l.type==='pee'||l.type==='both').length;
+  const poops=tl.filter(l=>l.type==='poop'||l.type==='both').length;
+  const mo=getMonths();
+  const ref=mo!==null?MILK[Math.min(mo,11)]:null;
+  const dr=mo!==null?DIAP[Math.min(mo,11)]:null;
+  if(!ref||feeds===0){setScore(null,'Cần thêm dữ liệu');document.getElementById('anaCard').innerHTML='<div class="card-hd"><span class="dot"></span>Tổng quan</div><div class="empty"><div class="ei">📊</div><p>Nhập ngày sinh và ghi nhận ít nhất 1 cữ bú</p></div>';return;}
+  let score=100;const warns=[],tips=[];
+  const[mMin,mMax]=ref.ml,[fMin,fMax]=ref.f;
+  if(total<mMin*.7){score-=20;warns.push({l:'b',t:`🚨 Tổng sữa ${total}ml — thấp hơn nhiều mức tối thiểu ${mMin}ml`});}
+  else if(total<mMin){score-=10;warns.push({l:'w',t:`⚠️ Tổng sữa ${total}ml chưa đạt tối thiểu ${mMin}ml`});}
+  if(feeds<fMin){score-=10;tips.push(`🍼 Tăng lên ít nhất ${fMin} cữ/ngày`);}
+  if(feeds>fMax+2){score-=5;tips.push('📅 Số cữ hơi nhiều — thử kéo dài khoảng cách dần dần');}
+  if(dr&&pees<dr.pMin){score-=15;warns.push({l:'b',t:`🚨 Tè chỉ ${pees} lần, cần ≥${dr.pMin} — bé có thể bú chưa đủ`});}
+  if(tl.some(l=>l.color==='red'||l.color==='white')){score-=30;warns.push({l:'b',t:'🚨 Phân màu bất thường — đến gặp bác sĩ ngay!'});}
+  score=Math.max(0,Math.min(100,score));
+  const lb=score>=80?'Xuất sắc! Bé hôm nay rất tốt 🎉':score>=60?'Khá tốt, tiếp tục theo dõi':score>=40?'Cần chú ý thêm':'Cần kiểm tra, tham khảo bác sĩ';
+  setScore(score,lb);
+  document.getElementById('anaCard').innerHTML=`<div class="card-hd"><span class="dot"></span>Tổng quan</div><div class="s-grid"><div class="sbox c-o"><div class="sv">${total}</div><div class="su">ml · ${feeds} cữ</div><div class="sl">Chuẩn ${mMin}–${mMax}ml</div></div><div class="sbox c-m"><div class="sv">${pees}</div><div class="su">lần tè</div><div class="sl">Cần ≥${dr?dr.pMin:6} lần/ngày</div></div></div>`;
+  const wb=document.getElementById('warnBox');
+  wb.innerHTML=warns.length?warns.map(w=>`<div style="padding:9px 12px;border-radius:var(--r-sm);margin-bottom:7px;font-size:.82rem;font-weight:600;background:${w.l==='b'?'var(--red-bg)':'var(--amber-bg)'};color:${w.l==='b'?'var(--red)':'#B45309'};border:1px solid ${w.l==='b'?'#FECACA':'#FDE68A'}">${w.t}</div>`).join(''):'<div style="padding:9px 12px;border-radius:var(--r-sm);background:var(--mint-bg);color:#059669;font-size:.82rem;font-weight:700;border:1px solid #A7F3D0">✅ Không có dấu hiệu bất thường hôm nay!</div>';
+  if(!tips.length)tips.push('✨ Tiếp tục duy trì lịch bú!');
+  if(mo<4)tips.push('🌙 Thức dậy cho bú mỗi 3h ban đêm nếu bé chưa thức');
+  if(mo>=4&&mo<6)tips.push('😴 Bắt đầu tập lịch ngủ nhất quán cho bé');
+  if(mo>=6)tips.push('🥣 Ăn dặm từ từ — sữa vẫn là thức ăn chính đến 12 tháng');
+  document.getElementById('tipsBox').innerHTML=tips.map(t=>`<div style="padding:9px 11px;border-radius:var(--r-sm);margin-bottom:7px;font-size:.82rem;color:var(--t2);background:var(--surface2);border:1px solid var(--border)">${t}</div>`).join('');
+}
+
+/* ===== SCORE RING ===== */
+function setScore(v,lb){
+  const circ=2*Math.PI*46;
+  const f=document.getElementById('rFill');
+  if(v===null){f.style.strokeDashoffset=circ;document.getElementById('sVal').textContent='—';document.getElementById('sVal').style.color='var(--t3)';document.getElementById('sLbl').textContent=lb;return;}
+  f.style.strokeDashoffset=circ*(1-v/100);
+  const c=v>=80?'var(--mint)':v>=60?'var(--orange)':'var(--red)';
+  f.style.stroke=c;
+  document.getElementById('sVal').textContent=v;
+  document.getElementById('sVal').style.color=c;
+  document.getElementById('sLbl').textContent=lb;
+}
+
+/* ===== PILL HELPER ===== */
+function setPill(id,t,txt){const e=document.getElementById(id);e.className=`s-pill pill-${t}`;e.textContent=txt;}
+
+/* ===== TABS ===== */
+function switchTab(name,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('sec-'+name).classList.add('active');
+  btn.classList.add('active');
+  window.scrollTo(0,0);
+  if(name==='knowledge')renderKnowledge();
+  if(name==='analysis')renderAnalysis(getDay(cur));
+}
+
+/* ===== KNOWLEDGE ===== */
+function renderKnowledge(){
+  const mo=getMonths();
+  document.getElementById('mGrid').innerHTML=Object.entries(MILK).map(([m,r])=>{const c=mo!==null&&+m===Math.min(mo,11);return`<div class="mc ${c?'cur':''}"><h4>${+m===0?'Sơ sinh':m+' tháng'}${c?' 👈':''}</h4><div class="mv">${r.ml[0]}–${r.ml[1]}ml</div><div class="ms">${r.f[0]}–${r.f[1]} cữ/ngày</div><div class="ms">${r.mf[0]}–${r.mf[1]}ml/cữ</div></div>`;}).join('');
+  document.getElementById('faqList').innerHTML=FAQS.map((f,i)=>`<div class="faq-item"><div class="faq-hd" onclick="toggleFaq(${i},this)"><span>${f.q}</span><span class="faq-arr">▼</span></div><div class="faq-body" id="faq-${i}">${f.a}</div></div>`).join('');
+}
+function toggleFaq(i,hd){const b=document.getElementById('faq-'+i),o=b.classList.contains('open');document.querySelectorAll('.faq-body').forEach(x=>x.classList.remove('open'));document.querySelectorAll('.faq-hd').forEach(x=>x.classList.remove('open'));if(!o){b.classList.add('open');hd.classList.add('open');}}
+
+/* ===== TOAST ===== */
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2300);}
+
+/* ===== INIT ===== */
+(function init(){
+  updDateDisp();
+  updAgePill();
+  renderAll();
+})();
+</script>
+</body>
+</html>
