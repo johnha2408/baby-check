@@ -140,9 +140,16 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 .card-hd .dot{width:6px;height:6px;border-radius:50%;background:var(--orange);flex-shrink:0}
 
 /* ── SHEET ── */
-.sh-overlay{position:fixed;inset:0;z-index:500;background:rgba(28,10,0,.45);
-  backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity .25s}
+.sh-overlay{
+  position:fixed;inset:0;z-index:500;
+  background:rgba(28,10,0,.45);
+  backdrop-filter:blur(2px);
+  opacity:0;pointer-events:none;
+  transition:opacity .25s;
+}
 .sh-overlay.open{opacity:1;pointer-events:all}
+/* ★ FIX: sheet sits ABOVE overlay, buttons inside must be clickable */
+.sheet{z-index:600 !important}
 .sheet{
   position:fixed;bottom:0;left:0;right:0;z-index:600;
   background:var(--surface);
@@ -551,7 +558,7 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;
   <div class="hdr-inner">
     <div class="hdr-brand">
       <span style="font-size:1.3rem">🍼</span>
-      <h1>Little KiWi</h1>
+      <h1>Little Kiwi</h1>
       <div class="sync-dot" id="syncDot" title="Trạng thái kết nối"></div>
     </div>
     <div class="hdr-right">
@@ -948,20 +955,36 @@ const USERS = {
 /* ── Day key: YYYY-MM-DD ── */
 function getDay(d) {
   if (!DB[d]) DB[d] = { milk:[], toilet:[], mood:[] };
+  // ★ ensure arrays even if Firebase returned partial data
+  if (!Array.isArray(DB[d].milk))   DB[d].milk   = [];
+  if (!Array.isArray(DB[d].toilet)) DB[d].toilet = [];
+  if (!Array.isArray(DB[d].mood))   DB[d].mood   = [];
   return DB[d];
 }
 
 /* ── Save to Firebase or localStorage ── */
 function save(date) {
   const dayData = DB[date] || { milk:[], toilet:[], mood:[] };
+  // Always also save to localStorage as backup
+  try { localStorage.setItem('by4_db', JSON.stringify(DB)); } catch(e){}
+
   if (fbReady && !localMode) {
     setSyncDot('ing');
     const key = date.replace(/-/g,'');
-    fbRef.child(key).set(dayData)
-      .then(() => setSyncDot('ok'))
-      .catch(e => { setSyncDot('err'); console.error(e); });
+    // Firebase doesn't support sparse arrays well — filter nulls
+    const clean = {
+      milk:   (dayData.milk   ||[]).filter(Boolean),
+      toilet: (dayData.toilet ||[]).filter(Boolean),
+      mood:   (dayData.mood   ||[]).filter(Boolean),
+    };
+    fbRef.child(key).set(clean)
+      .then(() => { setSyncDot('ok'); console.log('Saved to Firebase:', key); })
+      .catch(e => {
+        setSyncDot('err');
+        console.error('Firebase save error:', e);
+        showToast('⚠️ Lỗi lưu Firebase — đã lưu offline');
+      });
   } else {
-    localStorage.setItem('by4_db', JSON.stringify(DB));
     setSyncDot('ok');
   }
 }
@@ -971,23 +994,48 @@ function setSyncDot(state) {
   d.className = 'sync-dot ' + state;
 }
 
+/* ── Firebase: convert object-of-objects back to arrays ── */
+function fbObjToArr(obj) {
+  if (!obj) return [];
+  if (Array.isArray(obj)) return obj;
+  // Firebase stores JS arrays as objects {0:{...},1:{...},...}
+  return Object.values(obj).filter(Boolean);
+}
+
+function normDay(raw) {
+  if (!raw) return { milk:[], toilet:[], mood:[] };
+  return {
+    milk:   fbObjToArr(raw.milk),
+    toilet: fbObjToArr(raw.toilet),
+    mood:   fbObjToArr(raw.mood),
+  };
+}
+
 /* ── Firebase realtime listener ── */
 function startFirebaseSync() {
   if (!fbReady || localMode) return;
   setSyncDot('ing');
   fbRef.on('value', snap => {
     const raw = snap.val() || {};
-    // Convert keyed data back
     DB = {};
     Object.entries(raw).forEach(([k, v]) => {
-      const date = k.slice(0,4)+'-'+k.slice(4,6)+'-'+k.slice(6,8);
-      DB[date] = v;
+      // Key is YYYYMMDD -> convert to YYYY-MM-DD
+      const date = k.length === 8
+        ? k.slice(0,4)+'-'+k.slice(4,6)+'-'+k.slice(6,8)
+        : k; // handle if already YYYY-MM-DD
+      DB[date] = normDay(v);
     });
     setSyncDot('ok');
     renderAll();
     if (document.getElementById('sec-diary').classList.contains('active')) renderCalendar();
+  }, err => {
+    console.error('Firebase read error:', err);
+    setSyncDot('err');
+    // Fallback to localStorage
+    loadLocalDB();
+    renderAll();
   });
-  // Also listen for connection state
+  // Connection state
   fbDb.ref('.info/connected').on('value', snap => {
     setSyncDot(snap.val() ? 'ok' : 'err');
   });
@@ -1219,51 +1267,90 @@ function selMood(m) {
    ADD RECORDS
 ════════════════════════════════════════ */
 function addMilk() {
-  const time = document.getElementById('mTime').value;
-  const note = document.getElementById('mNote').value.trim();
+  const timeEl = document.getElementById('mTime');
+  const noteEl = document.getElementById('mNote');
+  if (!timeEl) { showToast('Lỗi: không tìm thấy form'); return; }
+  const time = timeEl.value;
+  const note = noteEl ? noteEl.value.trim() : '';
   if (!time) { showToast('⏰ Vui lòng nhập giờ bú'); return; }
+
   let amount, minutes = null;
-  if (curMilkType === 'mother') {
-    minutes = parseInt(document.getElementById('minSlider').value)||15;
+  const milkType = curMilkType || 'mother';
+  if (milkType === 'mother') {
+    const sliderEl = document.getElementById('minSlider');
+    minutes = parseInt(sliderEl ? sliderEl.value : 15) || 15;
     amount = Math.round(minutes * 5);
   } else {
-    amount = parseInt(document.getElementById('mAmt').value);
+    const amtEl = document.getElementById('mAmt');
+    amount = parseInt(amtEl ? amtEl.value : 0);
     if (!amount || amount < 5) { showToast('🍼 Vui lòng nhập lượng ml'); return; }
   }
-  const side = curMilkType==='mother' ? document.getElementById('mSide').value : null;
+  const sideEl = document.getElementById('mSide');
+  const side = (milkType==='mother' && sideEl) ? sideEl.value : null;
+
   const day = getDay(cur);
-  day.milk.push({ time, amount, type:curMilkType, note, id:Date.now(), minutes, side, by:curUser });
+  if (!Array.isArray(day.milk)) day.milk = [];
+  const entry = { time, amount, type:milkType, note, id:Date.now(), minutes, side, by:(curUser||'ba') };
+  day.milk.push(entry);
   day.milk.sort((a,b)=>a.time.localeCompare(b.time));
-  save(cur); closeSheet('milk'); renderAll();
-  showToast(`✅ ${amount}ml lúc ${time}` + (curMilkType==='mother'?` (~${minutes}ph)`:''));
+  save(cur);
+  closeSheet('milk');
+  renderAll();
+  showToast('✅ ' + amount + 'ml lúc ' + time + (milkType==='mother'?' (~'+minutes+'ph)':''));
 }
 
 function addToilet() {
-  const time = document.getElementById('tTime').value;
-  const type = document.getElementById('tType').value;
-  const color = document.getElementById('tColor').value;
-  const texture = document.getElementById('tTex').value;
+  const timeEl = document.getElementById('tTime');
+  const typeEl = document.getElementById('tType');
+  const colorEl = document.getElementById('tColor');
+  const texEl = document.getElementById('tTex');
+  const noteEl = document.getElementById('tNote');
+
+  if (!timeEl) { showToast('Lỗi: không tìm thấy form'); return; }
+  const time = timeEl.value;
+  const type = typeEl ? typeEl.value : 'pee';
+  const color = colorEl ? colorEl.value : 'normal';
+  const texture = texEl ? texEl.value : 'normal';
+  const note = noteEl ? noteEl.value.trim() : '';
+
   if (!time) { showToast('⏰ Vui lòng nhập giờ'); return; }
+
   const day = getDay(cur);
-  day.toilet.push({ time, type, color, texture, id:Date.now(), by:curUser });
+  const entry = { time, type, color, texture, note, id:Date.now(), by:(curUser||'ba') };
+  if (!Array.isArray(day.toilet)) day.toilet = [];
+  day.toilet.push(entry);
   day.toilet.sort((a,b)=>a.time.localeCompare(b.time));
-  save(cur); closeSheet('toilet'); renderAll();
+  save(cur);
+  closeSheet('toilet');
+  renderAll();
   const lb = {pee:'Đi tè 💧',poop:'Đi ị 💩',both:'Tè + ị 💧💩'};
-  showToast(`✅ ${lb[type]} lúc ${time}`);
-  if (color==='red'||color==='white') setTimeout(()=>showToast('⚠️ Phân màu bất thường!'),2400);
+  showToast('✅ ' + (lb[type]||type) + ' lúc ' + time);
+  if (color==='red'||color==='white') setTimeout(()=>showToast('⚠️ Phân màu bất thường — xem bác sĩ!'),2400);
 }
 
 function addMood() {
-  const time = document.getElementById('moTime').value;
-  const dur = parseInt(document.getElementById('moDur').value)||15;
-  const note = document.getElementById('moNote').value.trim();
+  const timeEl = document.getElementById('moTime');
+  const durEl = document.getElementById('moDur');
+  const noteEl = document.getElementById('moNote');
+
+  if (!timeEl) { showToast('Lỗi: không tìm thấy form'); return; }
+  const time = timeEl.value;
+  const dur = parseInt(durEl ? durEl.value : 15) || 15;
+  const note = noteEl ? noteEl.value.trim() : '';
+  const mood = curMood || 'fussy';
+
   if (!time) { showToast('⏰ Vui lòng nhập giờ'); return; }
+
   const day = getDay(cur);
-  day.mood.push({ time, mood:curMood, dur, note, id:Date.now(), by:curUser });
+  const entry = { time, mood, dur, note, id:Date.now(), by:(curUser||'ba') };
+  if (!Array.isArray(day.mood)) day.mood = [];
+  day.mood.push(entry);
   day.mood.sort((a,b)=>a.time.localeCompare(b.time));
-  save(cur); closeSheet('mood'); renderAll();
+  save(cur);
+  closeSheet('mood');
+  renderAll();
   const lb = {cry:'Khóc nhiều 😭',fussy:'Quấy nhẹ 😤',ok:'Ổn định 😊',active:'Thức đêm 🌙'};
-  showToast(`✅ ${lb[curMood]} lúc ${time}`);
+  showToast('✅ ' + (lb[mood]||mood) + ' lúc ' + time);
 }
 
 /* ════════════════════════════════════════
