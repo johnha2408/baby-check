@@ -4,72 +4,109 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#FF8C42">
 <title>BéYêu Tracker</title>
+
+<!-- Firebase v9 compat -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
 <style>
-/* ── TOKENS ── */
-:root {
-  --orange:#FF8C42; --coral:#FF6B6B;
-  --mint:#34D399; --mint-bg:#ECFDF5;
-  --sky:#38BDF8;
+:root{
+  --orange:#FF8C42;--coral:#FF6B6B;
+  --mint:#34D399;--mint-bg:#ECFDF5;
+  --sky:#38BDF8;--sky-bg:#F0F9FF;
   --purple:#A78BFA;
-  --amber:#F59E0B; --amber-bg:#FFFBEB;
-  --red:#EF4444; --red-bg:#FEF2F2;
-  --indigo:#6366F1; --indigo-bg:#EEF2FF;
-  --bg:#FFF7F0; --surface:#FFFFFF; --surface2:#FFF3E8;
-  --border:#FFE4CC; --border2:#F3F4F6;
-  --t1:#1C0A00; --t2:#6B4226; --t3:#B07040;
+  --amber:#F59E0B;--amber-bg:#FFFBEB;
+  --red:#EF4444;--red-bg:#FEF2F2;
+  --indigo:#6366F1;--indigo-bg:#EEF2FF;
+  --green:#10B981;
+  --pink:#EC4899;--pink-bg:#FDF2F8;
+  --blue:#3B82F6;--blue-bg:#EFF6FF;
+  --bg:#FFF7F0;--surface:#fff;--surface2:#FFF3E8;
+  --border:#FFE4CC;--border2:#F3F4F6;
+  --t1:#1C0A00;--t2:#6B4226;--t3:#B07040;
   --sh-sm:0 1px 3px rgba(180,90,30,.10);
   --sh-md:0 4px 16px rgba(180,90,30,.12);
-  --r-sm:10px; --r-md:16px; --r-lg:22px; --r-full:999px;
+  --r-sm:10px;--r-md:16px;--r-lg:22px;--r-full:999px;
   --tab-h:60px;
   --sat:env(safe-area-inset-top,0px);
   --sab:env(safe-area-inset-bottom,0px);
-  /* ★ Arial everywhere */
-  --font: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  --font:Arial,'Helvetica Neue',Helvetica,sans-serif;
 }
-
-/* ── RESET ── */
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{height:100%;scroll-behavior:smooth}
 body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100%;
-     padding-bottom:calc(var(--tab-h) + var(--sab) + 16px);overscroll-behavior:none}
+  padding-bottom:calc(var(--tab-h)+var(--sab)+16px);overscroll-behavior:none}
+
+/* ── USER SELECT SCREEN ── */
+#userScreen{position:fixed;inset:0;z-index:9000;background:linear-gradient(135deg,#FF8C42,#FF6B6B);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:32px}
+#userScreen h2{font-size:1.8rem;font-weight:900;color:#fff;text-align:center}
+#userScreen p{color:rgba(255,255,255,.85);font-size:.9rem;text-align:center}
+.user-cards{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+.user-card{background:#fff;border-radius:20px;padding:24px 28px;text-align:center;cursor:pointer;
+  box-shadow:0 8px 32px rgba(0,0,0,.15);transition:transform .2s,box-shadow .2s;min-width:130px}
+.user-card:active{transform:scale(.95)}
+.user-card .uc-avatar{font-size:3rem;margin-bottom:8px}
+.user-card .uc-name{font-size:1rem;font-weight:800;color:var(--t1)}
+.user-card .uc-role{font-size:.75rem;color:var(--t3);margin-top:2px}
+.user-card.ba{border-top:4px solid var(--blue)}
+.user-card.me{border-top:4px solid var(--pink)}
+
+/* ── USER BADGE (header) ── */
+.user-badge{display:flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);
+  border-radius:var(--r-full);padding:4px 10px 4px 6px;
+  font-size:.75rem;font-weight:700;color:#fff;cursor:pointer;transition:background .2s}
+.user-badge:active{background:rgba(255,255,255,.38)}
+.user-badge .ub-dot{width:22px;height:22px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0}
+.ub-dot.ba{background:var(--blue-bg)}
+.ub-dot.me{background:var(--pink-bg)}
+
+/* ── SYNC INDICATOR ── */
+.sync-dot{width:8px;height:8px;border-radius:50%;background:#ccc;flex-shrink:0;transition:background .3s}
+.sync-dot.ok{background:var(--mint)}
+.sync-dot.err{background:var(--red)}
+.sync-dot.ing{background:var(--amber);animation:pulse .8s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
 /* ── HEADER ── */
 .app-header{position:sticky;top:0;z-index:200;
   background:linear-gradient(135deg,var(--orange) 0%,var(--coral) 100%);
-  padding:calc(var(--sat) + 10px) 16px 14px;
+  padding:calc(var(--sat)+10px) 16px 14px;
   box-shadow:0 2px 12px rgba(255,107,107,.25)}
-.hdr-inner{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.hdr-brand{display:flex;align-items:center;gap:8px}
-.hdr-brand h1{font-family:var(--font);font-size:1.25rem;font-weight:900;color:#fff;letter-spacing:-.3px}
-.age-pill{background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);
-  border-radius:var(--r-full);padding:5px 12px;font-size:.75rem;font-weight:700;
-  color:#fff;white-space:nowrap;cursor:pointer;display:flex;align-items:center;gap:5px;transition:background .2s}
-.age-pill:active{background:rgba(255,255,255,.38)}
+.hdr-inner{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.hdr-brand{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.hdr-brand h1{font-size:1.1rem;font-weight:900;color:#fff}
+.hdr-right{display:flex;align-items:center;gap:8px}
 .date-strip{display:flex;align-items:center;gap:6px;margin-top:8px}
 .date-nav{background:rgba(255,255,255,.2);border:none;border-radius:var(--r-sm);
   width:32px;height:32px;display:flex;align-items:center;justify-content:center;
   color:#fff;font-size:1.1rem;cursor:pointer;transition:background .15s;flex-shrink:0}
 .date-nav:active{background:rgba(255,255,255,.38)}
 .date-disp{flex:1;text-align:center;font-size:.82rem;font-weight:700;color:#fff;
-  cursor:pointer;padding:4px;border-radius:var(--r-sm);transition:background .15s}
+  cursor:pointer;padding:6px 4px;border-radius:var(--r-sm);transition:background .15s}
 .date-disp:active{background:rgba(255,255,255,.15)}
+.age-pill{background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);
+  border-radius:var(--r-full);padding:5px 12px;font-size:.72rem;font-weight:700;
+  color:#fff;white-space:nowrap;cursor:pointer;display:flex;align-items:center;gap:5px;transition:background .2s}
+.age-pill:active{background:rgba(255,255,255,.38)}
 
 /* ── BOTTOM NAV ── */
 .bot-nav{position:fixed;bottom:0;left:0;right:0;z-index:300;background:var(--surface);
   border-top:1px solid var(--border);padding-bottom:var(--sab);
   box-shadow:0 -4px 20px rgba(180,90,30,.10);display:flex;
-  height:calc(var(--tab-h) + var(--sab))}
+  height:calc(var(--tab-h)+var(--sab))}
 .nav-btn{flex:1;border:none;background:transparent;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:3px;cursor:pointer;padding:8px 4px 0;position:relative}
-.nav-btn .n-icon{font-size:1.3rem;transition:transform .2s}
-.nav-btn .n-lbl{font-size:.63rem;font-weight:700;color:var(--t3);transition:color .2s}
+  align-items:center;justify-content:center;gap:3px;cursor:pointer;padding:8px 2px 0;position:relative}
+.nav-btn .n-icon{font-size:1.2rem;transition:transform .2s}
+.nav-btn .n-lbl{font-size:.58rem;font-weight:700;color:var(--t3);transition:color .2s}
 .nav-btn.active .n-icon{transform:translateY(-2px)}
 .nav-btn.active .n-lbl{color:var(--orange)}
 .nav-btn.active::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
-  width:28px;height:3px;background:linear-gradient(90deg,var(--orange),var(--coral));
+  width:26px;height:3px;background:linear-gradient(90deg,var(--orange),var(--coral));
   border-radius:0 0 3px 3px}
 
 /* ── SECTIONS ── */
@@ -81,20 +118,29 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 /* ── CARD ── */
 .card{background:var(--surface);border-radius:var(--r-lg);padding:16px;margin-bottom:12px;
   box-shadow:var(--sh-md);border:1px solid rgba(255,228,204,.6)}
-.card-hd{display:flex;align-items:center;gap:7px;font-size:.7rem;font-weight:700;
+.card-hd{display:flex;align-items:center;gap:7px;font-size:.68rem;font-weight:700;
   text-transform:uppercase;letter-spacing:1.2px;color:var(--t3);margin-bottom:14px}
 .card-hd .dot{width:6px;height:6px;border-radius:50%;background:var(--orange);flex-shrink:0}
 
-/* ── SHEET (bottom drawer) ── */
+/* ── SHEET ── */
 .sh-overlay{position:fixed;inset:0;z-index:500;background:rgba(28,10,0,.45);
   backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity .25s}
 .sh-overlay.open{opacity:1;pointer-events:all}
-.sheet{position:fixed;bottom:0;left:0;right:0;z-index:600;background:var(--surface);
-  border-radius:24px 24px 0 0;padding:0 16px calc(var(--sab) + 20px);
-  transform:translateY(100%);transition:transform .32s cubic-bezier(.32,1.2,.6,1);
-  max-height:93vh;overflow-y:auto}
+.sheet{
+  position:fixed;bottom:0;left:0;right:0;z-index:600;
+  background:var(--surface);
+  border-radius:24px 24px 0 0;
+  padding:0 16px 0;
+  transform:translateY(100%);
+  transition:transform .32s cubic-bezier(.32,1.2,.6,1);
+  max-height:86vh;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  display:flex;flex-direction:column;
+}
 .sheet.open{transform:translateY(0)}
-.sh-handle{width:36px;height:4px;border-radius:2px;background:var(--border);margin:12px auto 16px}
+.sh-body{padding-bottom:max(env(safe-area-inset-bottom,0px),24px);flex:1}
+.sh-handle{width:36px;height:4px;border-radius:2px;background:var(--border);margin:14px auto 16px;flex-shrink:0}
 .sh-title{font-size:1rem;font-weight:800;color:var(--t1);margin-bottom:16px;
   display:flex;align-items:center;gap:8px}
 
@@ -105,20 +151,25 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
   width:100%;background:var(--surface2);border:1.5px solid var(--border);
   border-radius:var(--r-md);padding:12px 14px;font-family:var(--font);
   font-size:.92rem;color:var(--t1);outline:none;
-  transition:border-color .2s,box-shadow .2s;-webkit-appearance:none;appearance:none}
-.field input[type=date]{padding-right:10px}
+  transition:border-color .2s,box-shadow .2s;-webkit-appearance:none;appearance:none;
+  /* ★ FIX: ensure consistent box model inside sheets */
+  box-sizing:border-box;display:block;min-height:46px}
+/* ★ FIX: custom select arrow */
+.field select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23B07040' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;cursor:pointer}
 .field input:focus,.field select:focus,.field textarea:focus{
   border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,140,66,.12)}
 .f-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
-/* ── TYPE TOGGLE (bú mẹ / sữa vắt / công thức) ── */
+/* ── TYPE TOGGLE ── */
 .type-toggle{display:flex;gap:6px;margin-bottom:12px}
 .type-btn{flex:1;padding:9px 6px;border:1.5px solid var(--border);border-radius:var(--r-md);
-  background:var(--surface2);font-family:var(--font);font-size:.78rem;font-weight:700;
-  color:var(--t2);cursor:pointer;text-align:center;transition:all .15s;line-height:1.3}
+  background:var(--surface2);font-size:.78rem;font-weight:700;color:var(--t2);
+  cursor:pointer;text-align:center;transition:all .15s;line-height:1.3}
 .type-btn.sel{background:var(--orange);border-color:var(--orange);color:#fff}
 
-/* minutes slider area */
+/* ── SLIDER ── */
 .min-section{background:var(--surface2);border:1.5px solid var(--border);
   border-radius:var(--r-md);padding:14px;margin-bottom:12px}
 .min-section label{font-size:.72rem;font-weight:700;color:var(--t2);display:block;margin-bottom:6px}
@@ -129,14 +180,13 @@ input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:6px;
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;
   border-radius:50%;background:var(--orange);cursor:pointer;box-shadow:0 2px 6px rgba(255,140,66,.4)}
 input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;
-  background:var(--orange);cursor:pointer;border:none;box-shadow:0 2px 6px rgba(255,140,66,.4)}
+  background:var(--orange);cursor:pointer;border:none}
 .min-hint{font-size:.7rem;color:var(--t3);text-align:center;margin-top:6px}
 
 /* ── ML CHIPS ── */
 .ml-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
 .ml-chip{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-full);
-  padding:7px 14px;font-size:.82rem;font-weight:700;color:var(--t2);
-  cursor:pointer;transition:all .15s;user-select:none}
+  padding:7px 14px;font-size:.82rem;font-weight:700;color:var(--t2);cursor:pointer;transition:all .15s}
 .ml-chip:active,.ml-chip.sel{background:var(--orange);border-color:var(--orange);color:#fff}
 
 /* ── BUTTONS ── */
@@ -146,20 +196,19 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;
 .btn:active{transform:scale(.97);opacity:.9}
 .btn-orange{background:linear-gradient(135deg,var(--orange),var(--coral));color:#fff;
   box-shadow:0 4px 16px rgba(255,107,107,.3)}
-.btn-purple{background:linear-gradient(135deg,var(--purple),#7C3AED);color:#fff;
-  box-shadow:0 4px 16px rgba(167,139,250,.3)}
+.btn-purple{background:linear-gradient(135deg,var(--purple),#7C3AED);color:#fff}
+.btn-indigo{background:linear-gradient(135deg,#818CF8,var(--indigo));color:#fff}
 .btn-ghost{background:var(--surface2);border:1.5px solid var(--border);color:var(--t2)}
 
 /* ── FAB ── */
-.fab-group{position:fixed;right:18px;bottom:calc(var(--tab-h) + var(--sab) + 14px);
+.fab-group{position:fixed;right:18px;bottom:calc(var(--tab-h)+var(--sab)+14px);
   z-index:250;display:flex;flex-direction:column-reverse;align-items:flex-end;gap:10px}
 .fab{border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;
   justify-content:center;box-shadow:0 8px 24px rgba(255,107,107,.4);transition:transform .2s}
 .fab:active{transform:scale(.93)}
 .fab-main{width:56px;height:56px;font-size:1.6rem;
   background:linear-gradient(135deg,var(--orange),var(--coral));transition:transform .25s}
-.fab-mini{width:44px;height:44px;font-size:1.2rem;
-  transform:scale(0);opacity:0;
+.fab-mini{width:44px;height:44px;font-size:1.2rem;transform:scale(0);opacity:0;
   transition:transform .22s cubic-bezier(.34,1.56,.64,1),opacity .15s}
 .fab-mini.c-milk{background:linear-gradient(135deg,#FFB347,var(--orange))}
 .fab-mini.c-toilet{background:linear-gradient(135deg,#C4B5FD,var(--purple))}
@@ -211,56 +260,56 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;
   border:1.5px solid rgba(255,140,66,.18);border-radius:var(--r-md);padding:13px;margin-top:10px}
 .ins-box h4{font-size:.78rem;font-weight:800;color:var(--orange);margin-bottom:6px}
 .ins-box p{font-size:.8rem;color:var(--t2);line-height:1.65}
+.ins-box.indigo{background:linear-gradient(135deg,rgba(99,102,241,.05),rgba(139,92,246,.05));
+  border-color:rgba(99,102,241,.2)}
+.ins-box.indigo h4{color:var(--indigo)}
 
 /* ── TIMELINE ── */
 .tl-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;
   border-bottom:1px solid var(--border2);animation:fadeSlide .25s ease}
 .tl-item:last-child{border-bottom:none}
-@keyframes fadeSlide{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+@keyframes fadeSlide{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:translateX(0)}}
 .tl-ic{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;
-  justify-content:center;font-size:1rem;flex-shrink:0}
+  justify-content:center;font-size:.95rem;flex-shrink:0}
 .tl-ic.milk{background:rgba(255,140,66,.12)}
 .tl-ic.pee{background:rgba(56,189,248,.15)}
 .tl-ic.poop{background:rgba(167,139,250,.15)}
 .tl-ic.mood{background:rgba(99,102,241,.12)}
 .tl-body{flex:1;min-width:0}
-.tl-time{font-size:.72rem;font-weight:700;color:var(--t3)}
-.tl-desc{font-size:.88rem;font-weight:700;color:var(--t1)}
-.tl-note{font-size:.72rem;color:var(--t2);margin-top:1px}
-.tl-del{background:none;border:none;cursor:pointer;color:#FCA5A5;font-size:1rem;
-  padding:6px;border-radius:6px;transition:color .15s,background .15s;flex-shrink:0;
-  min-width:32px;min-height:32px;display:flex;align-items:center;justify-content:center}
-.tl-del:hover,.tl-del:active{color:var(--red);background:var(--red-bg)}
+.tl-time{font-size:.7rem;font-weight:700;color:var(--t3)}
+.tl-desc{font-size:.86rem;font-weight:700;color:var(--t1)}
+.tl-note{font-size:.7rem;color:var(--t2);margin-top:1px}
+.tl-author{display:inline-block;font-size:.62rem;font-weight:700;border-radius:10px;
+  padding:1px 6px;margin-top:2px}
+.tl-author.ba{background:var(--blue-bg);color:#1D4ED8}
+.tl-author.me{background:var(--pink-bg);color:#BE185D}
+.tl-del{background:none;border:none;cursor:pointer;color:#FCA5A5;font-size:.9rem;
+  padding:6px;border-radius:6px;transition:color .15s,background .15s;
+  min-width:32px;min-height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tl-del:active{color:var(--red);background:var(--red-bg)}
 
-/* ── HOUR CHART (fixed: single row, no duplication) ── */
+/* ── HOUR CHART ── */
 .h-chart-wrap{position:relative;margin:12px 0 0}
 .h-chart{display:flex;align-items:flex-end;height:72px;gap:0}
 .hc-col{flex:1;display:flex;flex-direction:column-reverse;align-items:center;position:relative}
-.hc-bar{width:calc(100% - 1px);border-radius:3px 3px 0 0;min-height:2px;
-  transition:height .5s ease;margin:0 .5px}
+.hc-bar{width:calc(100% - 1px);border-radius:3px 3px 0 0;min-height:2px;transition:height .5s ease;margin:0 .5px}
 .hc-bar.milk-bar{background:linear-gradient(180deg,var(--orange),var(--coral))}
-.hc-bar.mood-bar{background:linear-gradient(180deg,#818CF8,var(--indigo))}
-.h-axis{display:flex;justify-content:space-between;margin-top:4px;
-  padding:0 0;font-size:.58rem;color:var(--t3)}
+.h-axis{display:flex;justify-content:space-between;margin-top:4px;font-size:.58rem;color:var(--t3)}
 
-/* ── MOOD TIMELINE CHART ── */
-.mood-chart{position:relative;border-radius:var(--r-md);overflow:hidden;
-  background:var(--surface2);border:1px solid var(--border);margin-bottom:12px}
+/* ── MOOD CHART ── */
+.mood-chart{border-radius:var(--r-md);overflow:hidden;background:var(--surface2);
+  border:1px solid var(--border);margin-bottom:4px}
 .mood-row{display:flex;height:36px}
 .mood-cell{flex:1;position:relative;border-right:1px solid rgba(255,228,204,.4)}
 .mood-cell:last-child{border-right:none}
-.mood-cell.has-event{background:rgba(239,68,68,.15)}
-.mood-cell.has-event.mild{background:rgba(245,158,11,.12)}
-.mood-axis{display:flex;justify-content:space-between;padding:0 0;font-size:.5rem;color:var(--t3);margin-top:2px}
 .mood-bar-inner{position:absolute;inset:4px 2px;border-radius:4px;opacity:.85}
 .mood-bar-inner.cry{background:var(--red)}
 .mood-bar-inner.fussy{background:var(--amber)}
 .mood-bar-inner.ok{background:var(--mint)}
-.mood-legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;font-size:.72rem;color:var(--t2)}
+.mood-bar-inner.active{background:var(--indigo)}
+.mood-legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;font-size:.7rem;color:var(--t2)}
 .mood-leg-item{display:flex;align-items:center;gap:4px;font-weight:700}
 .leg-dot{width:8px;height:8px;border-radius:2px}
-
-/* Mood chips */
 .mood-chips{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
 .mood-chip{padding:10px 8px;border:1.5px solid var(--border);border-radius:var(--r-md);
   background:var(--surface2);font-size:.82rem;font-weight:700;color:var(--t2);
@@ -269,6 +318,65 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;
 .mood-chip.sel-fussy{background:var(--amber-bg);border-color:var(--amber);color:#92400E}
 .mood-chip.sel-ok{background:var(--mint-bg);border-color:var(--mint);color:#065F46}
 .mood-chip.sel-active{background:var(--indigo-bg);border-color:var(--indigo);color:#3730A3}
+
+/* ── RECOMMENDATION BOX ── */
+.rec-box{border-radius:var(--r-md);padding:14px;margin-bottom:12px;
+  background:linear-gradient(135deg,rgba(99,102,241,.06),rgba(139,92,246,.06));
+  border:1.5px solid rgba(99,102,241,.18)}
+.rec-box h4{font-size:.78rem;font-weight:800;color:var(--indigo);margin-bottom:8px;
+  display:flex;align-items:center;gap:6px}
+.rec-item{display:flex;align-items:flex-start;gap:8px;padding:7px 0;
+  border-bottom:1px dashed rgba(99,102,241,.15);font-size:.8rem;color:var(--t2);line-height:1.5}
+.rec-item:last-child{border-bottom:none;padding-bottom:0}
+.rec-icon{font-size:1rem;flex-shrink:0;margin-top:1px}
+
+/* ── CALENDAR ── */
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.cal-nav-btn{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);
+  width:34px;height:34px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:1rem;color:var(--t2);transition:background .15s}
+.cal-nav-btn:active{background:var(--border)}
+.cal-month-lbl{font-size:.9rem;font-weight:800;color:var(--t1)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-dow{text-align:center;font-size:.62rem;font-weight:700;color:var(--t3);padding:4px 0}
+.cal-day{aspect-ratio:1;border-radius:var(--r-sm);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;cursor:pointer;position:relative;
+  transition:background .15s;font-size:.78rem;font-weight:700;color:var(--t2)}
+.cal-day:active{background:var(--border)}
+.cal-day.empty{cursor:default}
+.cal-day.today{color:var(--orange);font-weight:900}
+.cal-day.selected{background:var(--orange)!important;color:#fff!important;border-radius:var(--r-sm)}
+.cal-day.has-data{background:rgba(255,140,66,.08)}
+.cal-day .cal-dots{display:flex;gap:2px;position:absolute;bottom:3px;left:50%;transform:translateX(-50%)}
+.cal-dot{width:4px;height:4px;border-radius:50%}
+.cal-dot.milk{background:var(--orange)}
+.cal-dot.toilet{background:var(--purple)}
+.cal-dot.mood{background:var(--indigo)}
+.cal-day.today::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);
+  width:18px;height:2px;background:var(--orange);border-radius:2px}
+
+/* ── DIARY DETAIL PANEL ── */
+.diary-panel{background:var(--surface2);border-radius:var(--r-lg);padding:16px;margin-top:12px;
+  border:1.5px solid var(--border);animation:fadeUp .2s ease}
+.diary-date{font-size:.82rem;font-weight:800;color:var(--orange);margin-bottom:12px}
+.diary-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.ds-box{background:var(--surface);border-radius:var(--r-md);padding:10px 8px;
+  text-align:center;box-shadow:var(--sh-sm)}
+.ds-val{font-size:1.1rem;font-weight:900;color:var(--t1)}
+.ds-lbl{font-size:.6rem;color:var(--t3);margin-top:1px}
+.diary-score{display:flex;align-items:center;gap:10px;padding:10px 14px;
+  border-radius:var(--r-md);margin-bottom:12px}
+.diary-score.good{background:var(--mint-bg)}
+.diary-score.warn{background:var(--amber-bg)}
+.diary-score.bad{background:var(--red-bg)}
+.diary-score.neutral{background:var(--surface2)}
+.ds-emoji{font-size:1.8rem}
+.ds-text{font-size:.82rem;font-weight:700;color:var(--t2)}
+.diary-authors{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.da-badge{display:flex;align-items:center;gap:4px;padding:4px 10px;border-radius:var(--r-full);
+  font-size:.72rem;font-weight:700}
+.da-badge.ba{background:var(--blue-bg);color:#1D4ED8}
+.da-badge.me{background:var(--pink-bg);color:#BE185D}
 
 /* ── KNOWLEDGE ── */
 .month-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
@@ -293,7 +401,7 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;
   font-size:.82rem;color:var(--t2);line-height:1.7}
 .faq-body.open{display:block}
 
-/* ── SCORE ── */
+/* ── SCORE RING ── */
 .score-wrap{display:flex;flex-direction:column;align-items:center;padding:16px 0}
 .score-ring{position:relative;width:110px;height:110px}
 .score-ring svg{transform:rotate(-90deg)}
@@ -308,39 +416,28 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;
 
 /* ── EMPTY ── */
 .empty{text-align:center;padding:28px 16px;color:var(--t3)}
-.empty .ei{font-size:2.8rem;margin-bottom:8px}
+.empty .ei{font-size:2.6rem;margin-bottom:8px}
 .empty p{font-size:.82rem;line-height:1.6}
 
-/* ── MODAL (fixed layout — no overflow cut-off) ── */
-.mod-ov{
-  position:fixed;inset:0;z-index:700;
-  background:rgba(28,10,0,.5);backdrop-filter:blur(3px);
-  display:flex;align-items:flex-end;justify-content:center;
+/* ── MODAL ── */
+.mod-ov{position:fixed;inset:0;z-index:700;background:rgba(28,10,0,.5);
+  backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center;
   opacity:0;pointer-events:none;transition:opacity .2s}
 .mod-ov.open{opacity:1;pointer-events:all}
-.mod-box{
-  background:var(--surface);
-  border-radius:24px 24px 0 0;
-  /* ★ FIX: use padding-bottom with safe area, no overflow */
-  padding:0 20px calc(var(--sab) + 24px);
-  width:100%;max-width:480px;
-  transform:translateY(100%);
-  transition:transform .3s cubic-bezier(.32,1.2,.6,1);
+.mod-box{background:var(--surface);border-radius:24px 24px 0 0;
+  padding:0 20px calc(var(--sab)+24px);width:100%;max-width:480px;
+  transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1.2,.6,1);
   max-height:80vh;overflow-y:auto}
 .mod-ov.open .mod-box{transform:translateY(0)}
 .mod-inner{padding-top:20px}
 .mod-handle{width:36px;height:4px;border-radius:2px;background:var(--border);
   margin:12px auto 0;display:block}
-.mod-title{font-size:1rem;font-weight:800;color:var(--t1);
-  margin:16px 0 16px;display:flex;align-items:center;gap:8px}
+.mod-title{font-size:1rem;font-weight:800;color:var(--t1);margin:16px 0 16px;
+  display:flex;align-items:center;gap:8px}
 .mod-acts{display:flex;gap:10px;margin-top:16px}
 
-/* ── POOP COLORS ── */
-.cg{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.cg-i{padding:7px 9px;border-radius:var(--r-sm);font-size:.73rem;font-weight:600;line-height:1.4}
-
 /* ── TOAST ── */
-.toast{position:fixed;bottom:calc(var(--tab-h) + var(--sab) + 80px);left:50%;
+.toast{position:fixed;bottom:calc(var(--tab-h)+var(--sab)+80px);left:50%;
   transform:translateX(-50%) translateY(20px);
   background:var(--t1);color:#fff;padding:9px 18px;border-radius:var(--r-full);
   font-size:.8rem;font-weight:700;opacity:0;pointer-events:none;
@@ -348,14 +445,20 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* ── RESPONSIVE ── */
+/* ★ sh-body: scrollable inner content with bottom padding */
+.sh-body{
+  padding-bottom:max(env(safe-area-inset-bottom,0px),28px);
+}
+
 @media(min-width:600px){
   .pad{max-width:520px;margin:0 auto}
   .fab-group{right:calc(50% - 260px + 18px)}
   .bot-nav{max-width:520px;left:50%;transform:translateX(-50%);
     border-radius:20px 20px 0 0;border:1px solid var(--border);border-bottom:none}
-  .sheet,.mod-box{max-width:520px;left:50%;right:auto;
+  .sheet{max-width:520px;left:50%;right:auto;
     transform:translateX(-50%) translateY(100%)}
   .sheet.open{transform:translateX(-50%) translateY(0)}
+  .mod-box{max-width:520px}
   .mod-ov.open .mod-box{transform:translateX(-50%) translateY(0)}
   .s-grid-4{grid-template-columns:repeat(4,1fr)}
 }
@@ -369,26 +472,55 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;
 </head>
 <body>
 
-<!-- ═══════ HEADER ═══════ -->
+<!-- ═══ USER SELECT ═══ -->
+<div id="userScreen">
+  <div>
+    <div style="font-size:3rem;text-align:center;margin-bottom:8px">🍼</div>
+    <h2>BéYêu Tracker</h2>
+    <p style="margin-top:8px">Bạn là ai hôm nay?</p>
+  </div>
+  <div class="user-cards">
+    <div class="user-card ba" onclick="selectUser('ba')">
+      <div class="uc-avatar">👨</div>
+      <div class="uc-name">Ba Giôn</div>
+      <div class="uc-role">Bố của bé</div>
+    </div>
+    <div class="user-card me" onclick="selectUser('me')">
+      <div class="uc-avatar">👩</div>
+      <div class="uc-name">Mẹ Thi</div>
+      <div class="uc-role">Mẹ của bé</div>
+    </div>
+  </div>
+  <p style="font-size:.72rem;opacity:.7">Dữ liệu đồng bộ realtime qua Firebase ☁️</p>
+</div>
+
+<!-- ═══ HEADER ═══ -->
 <header class="app-header">
   <div class="hdr-inner">
     <div class="hdr-brand">
-      <span style="font-size:1.4rem">🍼</span>
+      <span style="font-size:1.3rem">🍼</span>
       <h1>BéYêu</h1>
+      <div class="sync-dot" id="syncDot" title="Trạng thái kết nối"></div>
     </div>
-    <button class="age-pill" onclick="openDobModal()">
-      <span id="agePillText">Nhập ngày sinh</span>
-      <span style="font-size:.65rem;opacity:.75">✎</span>
-    </button>
+    <div class="hdr-right">
+      <button class="age-pill" onclick="openDobModal()">
+        <span id="agePillText">Ngày sinh</span><span style="font-size:.65rem;opacity:.75">✎</span>
+      </button>
+      <button class="user-badge" onclick="switchUser()">
+        <div class="ub-dot" id="ubDot">👤</div>
+        <span id="ubName">—</span>
+      </button>
+    </div>
   </div>
   <div class="date-strip">
+    <!-- ★ FIX: correct date navigation -->
     <button class="date-nav" onclick="shiftDate(-1)">‹</button>
     <div class="date-disp" onclick="openDateModal()" id="dateDisp">Hôm nay</div>
     <button class="date-nav" onclick="shiftDate(1)">›</button>
   </div>
 </header>
 
-<!-- ═══════ MILK SECTION ═══════ -->
+<!-- ═══ MILK SECTION ═══ -->
 <div class="section active pad" id="sec-milk">
   <div class="s-grid s-grid-4">
     <div class="sbox c-o"><div class="sv" id="s-ml">0</div><div class="su">ml</div><div class="sl">Tổng sữa</div></div>
@@ -396,7 +528,6 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;
     <div class="sbox c-s"><div class="sv" id="s-avg">—</div><div class="su">ml/cữ</div><div class="sl">Trung bình</div></div>
     <div class="sbox c-a"><div class="sv" id="s-int">—</div><div class="su">giờ</div><div class="sl">Khoảng cách</div></div>
   </div>
-
   <div class="card">
     <div class="card-hd"><span class="dot"></span>So với tiêu chuẩn tháng tuổi</div>
     <div class="s-pill pill-n" id="milkPill">⏳ Nhập ngày sinh để đánh giá</div>
@@ -408,32 +539,25 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;
       <div class="prog-row"><span>Số cữ bú</span><span id="pFLbl">0 / — cữ</span></div>
       <div class="prog-track"><div class="prog-fill pf-m" id="pFF" style="width:0%"></div></div>
     </div>
-    <div class="ins-box" id="milkIns"><h4>💡 Nhận xét</h4><p>Nhập ngày sinh và ghi nhận cữ bú để nhận phân tích chi tiết.</p></div>
+    <div class="ins-box" id="milkIns"><h4>💡 Nhận xét</h4><p>Nhập ngày sinh và ghi nhận cữ bú để nhận phân tích.</p></div>
   </div>
-
-  <!-- ★ FIX: single clean hour chart -->
   <div class="card">
     <div class="card-hd"><span class="dot"></span>Phân bố cữ bú trong ngày</div>
     <div class="h-chart-wrap">
       <div class="h-chart" id="hChart"></div>
-      <div class="h-axis">
-        <span>0h</span><span>3h</span><span>6h</span><span>9h</span>
-        <span>12h</span><span>15h</span><span>18h</span><span>21h</span><span>24h</span>
-      </div>
+      <div class="h-axis"><span>0h</span><span>3h</span><span>6h</span><span>9h</span><span>12h</span><span>15h</span><span>18h</span><span>21h</span><span>24h</span></div>
     </div>
     <div class="ins-box" id="hourIns" style="margin-top:10px">
-      <h4>🌙 Phân tích thời điểm bú</h4>
-      <p>Ghi nhận ít nhất 2 cữ để phân tích.</p>
+      <h4>🌙 Phân tích thời điểm bú</h4><p>Ghi nhận ít nhất 2 cữ để phân tích.</p>
     </div>
   </div>
-
   <div class="card">
     <div class="card-hd"><span class="dot"></span>Lịch sử hôm nay</div>
     <div id="milkTL"><div class="empty"><div class="ei">🍼</div><p>Chưa có cữ bú nào<br><small>Nhấn <b>+</b> góc phải để thêm</small></p></div></div>
   </div>
 </div>
 
-<!-- ═══════ TOILET SECTION ═══════ -->
+<!-- ═══ TOILET SECTION ═══ -->
 <div class="section pad" id="sec-toilet">
   <div class="s-grid">
     <div class="sbox c-s"><div class="sv" id="s-pee">0</div><div class="su">lần</div><div class="sl">Tè hôm nay</div></div>
@@ -446,62 +570,83 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;
   </div>
   <div class="card">
     <div class="card-hd"><span class="dot"></span>Ý nghĩa màu phân</div>
-    <div class="cg">
-      <div class="cg-i" style="background:rgba(250,204,21,.12)">🟡 <b>Vàng</b><br>Bình thường (bú mẹ)</div>
-      <div class="cg-i" style="background:rgba(74,222,128,.1)">🟢 <b>Xanh</b><br>Thỉnh thoảng là BT</div>
-      <div class="cg-i" style="background:rgba(161,98,7,.1)">🟤 <b>Nâu</b><br>Bình thường (sữa CT)</div>
-      <div class="cg-i" style="background:rgba(71,85,105,.1)">⚫ <b>Đen</b><br>Ngày đầu (phân su)</div>
-      <div class="cg-i" style="background:rgba(239,68,68,.1)">🔴 <b>Đỏ/máu</b><br>⚠️ Gặp bác sĩ ngay</div>
-      <div class="cg-i" style="background:rgba(148,163,184,.12)">⚪ <b>Trắng/xám</b><br>⚠️ Gặp bác sĩ ngay</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+      <div style="padding:7px 9px;border-radius:var(--r-sm);background:rgba(250,204,21,.12);font-size:.73rem;font-weight:600;line-height:1.4">🟡 <b>Vàng</b><br>Bình thường (bú mẹ)</div>
+      <div style="padding:7px 9px;border-radius:var(--r-sm);background:rgba(74,222,128,.1);font-size:.73rem;font-weight:600;line-height:1.4">🟢 <b>Xanh</b><br>Thỉnh thoảng là BT</div>
+      <div style="padding:7px 9px;border-radius:var(--r-sm);background:rgba(161,98,7,.1);font-size:.73rem;font-weight:600;line-height:1.4">🟤 <b>Nâu</b><br>Bình thường (sữa CT)</div>
+      <div style="padding:7px 9px;border-radius:var(--r-sm);background:rgba(71,85,105,.1);font-size:.73rem;font-weight:600;line-height:1.4">⚫ <b>Đen</b><br>Ngày đầu (phân su)</div>
+      <div style="padding:7px 9px;border-radius:var(--r-sm);background:rgba(239,68,68,.1);font-size:.73rem;font-weight:600;line-height:1.4">🔴 <b>Đỏ/máu</b><br>⚠️ Gặp bác sĩ ngay</div>
+      <div style="padding:7px 9px;border-radius:var(--r-sm);background:rgba(148,163,184,.12);font-size:.73rem;font-weight:600;line-height:1.4">⚪ <b>Trắng/xám</b><br>⚠️ Gặp bác sĩ ngay</div>
     </div>
   </div>
   <div class="card">
     <div class="card-hd"><span class="dot"></span>Lịch sử hôm nay</div>
-    <div id="toiletTL"><div class="empty"><div class="ei">🚼</div><p>Chưa có ghi nhận vệ sinh<br><small>Nhấn <b>+</b> góc phải để thêm</small></p></div></div>
+    <div id="toiletTL"><div class="empty"><div class="ei">🚼</div><p>Chưa có ghi nhận vệ sinh<br><small>Nhấn <b>+</b> góc phải</small></p></div></div>
   </div>
 </div>
 
-<!-- ═══════ MOOD SECTION (NEW) ═══════ -->
+<!-- ═══ MOOD SECTION ═══ -->
 <div class="section pad" id="sec-mood">
   <div class="s-grid">
     <div class="sbox c-i"><div class="sv" id="s-cry">0</div><div class="su">lần</div><div class="sl">Khóc/khó chịu</div></div>
     <div class="sbox c-a"><div class="sv" id="s-fussy">0</div><div class="su">lần</div><div class="sl">Quấy nhẹ</div></div>
   </div>
 
-  <!-- Mood 24h chart -->
+  <!-- ★ NEW: Smart recommendation -->
+  <div class="card" id="recCard">
+    <div class="card-hd"><span class="dot" style="background:var(--indigo)"></span>Kiến nghị thông minh</div>
+    <div id="recContent"><div class="empty" style="padding:16px"><div class="ei">💡</div><p>Ghi nhận dữ liệu để nhận kiến nghị</p></div></div>
+  </div>
+
   <div class="card">
     <div class="card-hd"><span class="dot"></span>Bản đồ khó chịu 24 giờ</div>
-    <p style="font-size:.74rem;color:var(--t3);margin-bottom:10px">Màu đỏ = khóc nhiều · Màu vàng = quấy nhẹ · Theo dõi để phát hiện khung giờ bé hay khó chịu</p>
-    <div class="mood-chart">
-      <div class="mood-row" id="moodRow"></div>
+    <p style="font-size:.74rem;color:var(--t3);margin-bottom:10px">🔴 Khóc nhiều · 🟡 Quấy nhẹ · 🟢 Ổn</p>
+    <div class="mood-chart"><div class="mood-row" id="moodRow"></div></div>
+    <div style="display:flex;justify-content:space-between;font-size:.55rem;color:var(--t3);margin-top:2px">
+      <span>0h</span><span>3h</span><span>6h</span><span>9h</span><span>12h</span><span>15h</span><span>18h</span><span>21h</span>
     </div>
-    <div class="mood-axis" id="moodAxis"></div>
     <div class="mood-legend">
       <div class="mood-leg-item"><div class="leg-dot" style="background:var(--red)"></div>Khóc nhiều</div>
       <div class="mood-leg-item"><div class="leg-dot" style="background:var(--amber)"></div>Quấy nhẹ</div>
       <div class="mood-leg-item"><div class="leg-dot" style="background:var(--mint)"></div>Ổn</div>
+      <div class="mood-leg-item"><div class="leg-dot" style="background:var(--indigo)"></div>Thức đêm</div>
     </div>
     <div class="ins-box" id="moodIns" style="margin-top:12px">
-      <h4>🕐 Phân tích khung giờ</h4>
-      <p>Ghi nhận ít nhất 3 sự kiện để phân tích khung giờ bé hay khó chịu.</p>
+      <h4>🕐 Phân tích khung giờ</h4><p>Ghi nhận ít nhất 3 sự kiện để phân tích.</p>
     </div>
   </div>
 
-  <!-- Age-based fussy periods -->
   <div class="card">
     <div class="card-hd"><span class="dot"></span>Khung giờ điển hình theo tháng tuổi</div>
-    <div id="moodAgeRef">
-      <div class="empty"><div class="ei">👶</div><p>Nhập ngày sinh để xem khung giờ điển hình cho bé</p></div>
-    </div>
+    <div id="moodAgeRef"><div class="empty"><div class="ei">👶</div><p>Nhập ngày sinh để xem</p></div></div>
   </div>
 
   <div class="card">
     <div class="card-hd"><span class="dot"></span>Lịch sử hôm nay</div>
-    <div id="moodTL"><div class="empty"><div class="ei">😴</div><p>Chưa có ghi nhận trạng thái<br><small>Nhấn <b>+</b> góc phải để thêm</small></p></div></div>
+    <div id="moodTL"><div class="empty"><div class="ei">😴</div><p>Chưa có ghi nhận trạng thái<br><small>Nhấn <b>+</b> góc phải</small></p></div></div>
   </div>
 </div>
 
-<!-- ═══════ ANALYSIS ═══════ -->
+<!-- ═══ DIARY SECTION (NEW) ═══ -->
+<div class="section pad" id="sec-diary">
+  <div class="card">
+    <div class="card-hd"><span class="dot"></span>Nhật ký theo tháng</div>
+    <div class="cal-nav">
+      <button class="cal-nav-btn" onclick="calShift(-1)">‹</button>
+      <div class="cal-month-lbl" id="calMonthLbl">Tháng 3/2026</div>
+      <button class="cal-nav-btn" onclick="calShift(1)">›</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;font-size:.68rem;color:var(--t3)">
+      <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--orange);margin-right:3px"></span>Có sữa</span>
+      <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--purple);margin-right:3px"></span>Vệ sinh</span>
+      <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--indigo);margin-right:3px"></span>Trạng thái</span>
+    </div>
+  </div>
+  <div id="diaryDetail"></div>
+</div>
+
+<!-- ═══ ANALYSIS SECTION ═══ -->
 <div class="section pad" id="sec-analysis">
   <div class="card">
     <div class="card-hd"><span class="dot"></span>Điểm sức khoẻ hôm nay</div>
@@ -531,190 +676,150 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;
   <div class="card"><div class="card-hd"><span class="dot"></span>Lời khuyên cho bé</div><div id="tipsBox"><div style="font-size:.82rem;color:var(--t3)">Ghi nhận ít nhất 1 cữ bú để nhận lời khuyên.</div></div></div>
 </div>
 
-<!-- ═══════ KNOWLEDGE ═══════ -->
-<div class="section pad" id="sec-knowledge">
-  <div class="card">
-    <div class="card-hd"><span class="dot"></span>Lượng sữa theo tháng tuổi</div>
-    <p style="font-size:.75rem;color:var(--t3);margin-bottom:12px">Chuẩn WHO & AAP. Mỗi bé có thể ±20%.</p>
-    <div class="month-grid" id="mGrid"></div>
-  </div>
-  <div class="card"><div class="card-hd"><span class="dot"></span>Câu hỏi thường gặp</div><div id="faqList"></div></div>
-  <div class="card">
-    <div class="card-hd"><span class="dot"></span>Khi nào cần gặp bác sĩ?</div>
-    <div style="font-size:.82rem;line-height:1.8;color:var(--t2)">
-      <div style="padding:8px;background:var(--red-bg);border-radius:var(--r-sm);margin-bottom:8px">🔴 <b>Ngay lập tức:</b> Phân đỏ/trắng xám, bỏ bú >4h (dưới 1 tháng), sốt cao, lờ đờ.</div>
-      <div style="padding:8px;background:var(--amber-bg);border-radius:var(--r-sm);margin-bottom:8px">🟡 <b>Theo dõi gấp:</b> Tã ướt <6 lần/ngày (sau ngày 5), sụt cân sau tuần 2, vàng da nặng.</div>
-      <div style="padding:8px;background:var(--mint-bg);border-radius:var(--r-sm)">🟢 <b>Bình thường:</b> Phân xanh thỉnh thoảng, rặn khi đại tiện, bú dài hơn vào tối.</div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════ BOTTOM NAV (5 tabs) ═══════ -->
+<!-- ═══ BOTTOM NAV (6 tabs) ═══ -->
 <nav class="bot-nav">
   <button class="nav-btn active" onclick="switchTab('milk',this)"><span class="n-icon">🍼</span><span class="n-lbl">Sữa</span></button>
   <button class="nav-btn" onclick="switchTab('toilet',this)"><span class="n-icon">🚼</span><span class="n-lbl">Vệ sinh</span></button>
   <button class="nav-btn" onclick="switchTab('mood',this)"><span class="n-icon">😴</span><span class="n-lbl">Trạng thái</span></button>
+  <button class="nav-btn" onclick="switchTab('diary',this)"><span class="n-icon">📅</span><span class="n-lbl">Nhật ký</span></button>
   <button class="nav-btn" onclick="switchTab('analysis',this)"><span class="n-icon">📊</span><span class="n-lbl">Phân tích</span></button>
-  <button class="nav-btn" onclick="switchTab('knowledge',this)"><span class="n-icon">📚</span><span class="n-lbl">Kiến thức</span></button>
 </nav>
 
-<!-- ═══════ FAB ═══════ -->
+<!-- ═══ FAB ═══ -->
 <div class="fab-group" id="fabG">
   <button class="fab fab-main" onclick="toggleFab()">＋</button>
-  <div class="fab-row">
-    <span class="fab-lbl">Ghi trạng thái</span>
-    <button class="fab fab-mini c-mood" onclick="openSheet('mood')">😴</button>
-  </div>
-  <div class="fab-row">
-    <span class="fab-lbl">Ghi vệ sinh</span>
-    <button class="fab fab-mini c-toilet" onclick="openSheet('toilet')">🚼</button>
-  </div>
-  <div class="fab-row">
-    <span class="fab-lbl">Thêm cữ bú</span>
-    <button class="fab fab-mini c-milk" onclick="openSheet('milk')">🍼</button>
-  </div>
+  <div class="fab-row"><span class="fab-lbl">Ghi trạng thái</span><button class="fab fab-mini c-mood" onclick="openSheet('mood')">😴</button></div>
+  <div class="fab-row"><span class="fab-lbl">Ghi vệ sinh</span><button class="fab fab-mini c-toilet" onclick="openSheet('toilet')">🚼</button></div>
+  <div class="fab-row"><span class="fab-lbl">Thêm cữ bú</span><button class="fab fab-mini c-milk" onclick="openSheet('milk')">🍼</button></div>
 </div>
 
-<!-- ═══════ MILK SHEET ═══════ -->
+<!-- ═══ MILK SHEET ═══ -->
 <div class="sh-overlay" id="shOvMilk" onclick="closeSheet('milk')"></div>
 <div class="sheet" id="shMilk">
   <div class="sh-handle"></div>
-  <div class="sh-title">🍼 Ghi nhận cữ bú</div>
-
-  <!-- ★ FIX: milk type toggle → drives different UX -->
-  <div class="field"><label>Loại sữa</label>
-    <div class="type-toggle">
-      <div class="type-btn sel" id="tt-mother" onclick="selectMilkType('mother')">👩 Bú mẹ<br>trực tiếp</div>
-      <div class="type-btn" id="tt-expressed" onclick="selectMilkType('expressed')">🍶 Sữa mẹ<br>vắt ra</div>
-      <div class="type-btn" id="tt-formula" onclick="selectMilkType('formula')">🥛 Sữa<br>công thức</div>
-    </div>
-  </div>
-
-  <!-- Bú mẹ: dùng phút -->
-  <div id="motherSection">
-    <div class="min-section">
-      <label>⏱ Thời gian bú (phút) — kéo để chỉnh</label>
-      <div class="min-display"><span id="minVal">15</span> <span>phút</span></div>
-      <input type="range" id="minSlider" min="1" max="60" value="15"
-        oninput="document.getElementById('minVal').textContent=this.value;calcEstMl()">
-      <div class="min-hint" id="estMlHint">≈ Ước tính <b>60–90ml</b> · Bé hút ~4–6ml/phút</div>
-    </div>
-    <p style="font-size:.72rem;color:var(--t3);margin-bottom:12px">💡 Bú mẹ trực tiếp: <b>1 bên 10–20 phút</b> = khoảng 60–120ml. Nhập phút để ước tính ml.</p>
-  </div>
-
-  <!-- Sữa vắt / công thức: dùng ml chips -->
-  <div id="mlSection" style="display:none">
-    <div class="field">
-      <label>Lượng sữa (ml) — chọn nhanh</label>
-      <div class="ml-chips">
-        <span class="ml-chip" onclick="pickMl(60)">60</span>
-        <span class="ml-chip" onclick="pickMl(80)">80</span>
-        <span class="ml-chip" onclick="pickMl(100)">100</span>
-        <span class="ml-chip" onclick="pickMl(120)">120</span>
-        <span class="ml-chip" onclick="pickMl(150)">150</span>
-        <span class="ml-chip" onclick="pickMl(180)">180</span>
-        <span class="ml-chip" onclick="pickMl(200)">200</span>
-        <span class="ml-chip" onclick="pickMl(240)">240</span>
+  <div class="sh-body">
+    <div class="sh-title">🍼 Ghi nhận cữ bú</div>
+    <div class="field"><label>Loại sữa</label>
+      <div class="type-toggle">
+        <div class="type-btn sel" id="tt-mother" onclick="selectMilkType('mother')">👩 Bú mẹ<br>trực tiếp</div>
+        <div class="type-btn" id="tt-expressed" onclick="selectMilkType('expressed')">🍶 Sữa mẹ<br>vắt ra</div>
+        <div class="type-btn" id="tt-formula" onclick="selectMilkType('formula')">🥛 Sữa<br>công thức</div>
       </div>
-      <input type="number" id="mAmt" placeholder="Hoặc nhập số ml..." min="10" max="400"
-        oninput="clearChips()">
     </div>
-  </div>
-
-  <div class="f-row">
-    <div class="field"><label>Giờ bú</label><input type="time" id="mTime"></div>
-    <div class="field" id="sideField">
-      <label>Bên bú</label>
-      <select id="mSide" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-md);padding:12px 14px;font-family:var(--font);font-size:.92rem;color:var(--t1);outline:none;-webkit-appearance:none;appearance:none">
-        <option value="both">Cả hai bên</option>
-        <option value="left">Bên trái</option>
-        <option value="right">Bên phải</option>
-      </select>
+    <div id="motherSection">
+      <div class="min-section">
+        <label>⏱ Thời gian bú (phút)</label>
+        <div class="min-display"><span id="minVal">15</span> <span>phút</span></div>
+        <input type="range" id="minSlider" min="1" max="60" value="15"
+          oninput="document.getElementById('minVal').textContent=this.value;calcEstMl()">
+        <div class="min-hint" id="estMlHint">≈ Ước tính <b>60–90ml</b> · ~4–6ml/phút</div>
+      </div>
+      <p style="font-size:.72rem;color:var(--t3);margin-bottom:12px">💡 10–20 phút/bên ≈ 60–120ml</p>
     </div>
+    <div id="mlSection" style="display:none">
+      <div class="field">
+        <label>Lượng sữa (ml)</label>
+        <div class="ml-chips">
+          <span class="ml-chip" onclick="pickMl(60)">60</span><span class="ml-chip" onclick="pickMl(80)">80</span>
+          <span class="ml-chip" onclick="pickMl(100)">100</span><span class="ml-chip" onclick="pickMl(120)">120</span>
+          <span class="ml-chip" onclick="pickMl(150)">150</span><span class="ml-chip" onclick="pickMl(180)">180</span>
+          <span class="ml-chip" onclick="pickMl(200)">200</span><span class="ml-chip" onclick="pickMl(240)">240</span>
+        </div>
+        <input type="number" id="mAmt" placeholder="Hoặc nhập số ml..." min="10" max="400" oninput="clearChips()">
+      </div>
+    </div>
+    <div class="f-row">
+      <div class="field"><label>Giờ bú</label><input type="time" id="mTime"></div>
+      <div class="field" id="sideField">
+        <label>Bên bú</label>
+        <select id="mSide"><option value="both">Cả hai bên</option><option value="left">Bên trái</option><option value="right">Bên phải</option></select>
+      </div>
+    </div>
+    <div class="field"><label>Ghi chú (tuỳ chọn)</label><input type="text" id="mNote" placeholder="Bé bú ngoan, ngủ sau bú..."></div>
+    <button class="btn btn-orange" onclick="addMilk()">✅ Lưu cữ bú</button>
+    <button class="btn btn-ghost" style="margin-top:8px;margin-bottom:4px" onclick="closeSheet('milk')">Huỷ bỏ</button>
   </div>
-  <div class="field"><label>Ghi chú (tuỳ chọn)</label>
-    <input type="text" id="mNote" placeholder="Bé bú ngoan, ngủ sau bú...">
-  </div>
-  <button class="btn btn-orange" onclick="addMilk()">✅ Lưu cữ bú</button>
-  <button class="btn btn-ghost" style="margin-top:8px" onclick="closeSheet('milk')">Huỷ bỏ</button>
 </div>
 
-<!-- ═══════ TOILET SHEET ═══════ -->
+<!-- ═══ TOILET SHEET ═══ -->
 <div class="sh-overlay" id="shOvToilet" onclick="closeSheet('toilet')"></div>
 <div class="sheet" id="shToilet">
   <div class="sh-handle"></div>
-  <div class="sh-title">🚼 Ghi nhận vệ sinh</div>
-  <div class="f-row">
-    <div class="field"><label>Giờ</label><input type="time" id="tTime"></div>
-    <div class="field"><label>Loại</label>
-      <select id="tType" onchange="togglePoop()">
-        <option value="pee">💧 Tè (đi nhẹ)</option>
-        <option value="poop">💩 Ị (đi nặng)</option>
-        <option value="both">💧💩 Cả hai</option>
-      </select>
-    </div>
-  </div>
-  <div id="poopF">
+  <div class="sh-body">
+    <div class="sh-title">🚼 Ghi nhận vệ sinh</div>
     <div class="f-row">
-      <div class="field"><label>Màu phân</label>
-        <select id="tColor">
-          <option value="normal">🟡 Vàng (bình thường)</option>
-          <option value="green">🟢 Xanh</option>
-          <option value="brown">🟤 Nâu</option>
-          <option value="black">⚫ Đen</option>
-          <option value="red">🔴 Đỏ/máu ⚠️</option>
-          <option value="white">⚪ Trắng/xám ⚠️</option>
-        </select>
-      </div>
-      <div class="field"><label>Tính chất</label>
-        <select id="tTex">
-          <option value="normal">Bình thường</option>
-          <option value="loose">Lỏng/sệt</option>
-          <option value="watery">Toé nước</option>
-          <option value="hard">Cứng/khô</option>
-          <option value="mucus">Có nhầy</option>
+      <div class="field"><label>Giờ</label><input type="time" id="tTime"></div>
+      <div class="field"><label>Loại</label>
+        <select id="tType" onchange="togglePoop()">
+          <option value="pee">💧 Tè (đi nhẹ)</option>
+          <option value="poop">💩 Ị (đi nặng)</option>
+          <option value="both">💧💩 Cả hai</option>
         </select>
       </div>
     </div>
+    <div id="poopF">
+      <div class="f-row">
+        <div class="field"><label>Màu phân</label>
+          <select id="tColor">
+            <option value="normal">🟡 Vàng (bình thường)</option>
+            <option value="green">🟢 Xanh</option>
+            <option value="brown">🟤 Nâu</option>
+            <option value="black">⚫ Đen</option>
+            <option value="red">🔴 Đỏ/máu ⚠️</option>
+            <option value="white">⚪ Trắng/xám ⚠️</option>
+          </select>
+        </div>
+        <div class="field"><label>Tính chất</label>
+          <select id="tTex">
+            <option value="normal">Bình thường</option>
+            <option value="loose">Lỏng/sệt</option>
+            <option value="watery">Toé nước</option>
+            <option value="hard">Cứng/khô</option>
+            <option value="mucus">Có nhầy</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="field"><label>Ghi chú (tuỳ chọn)</label><input type="text" id="tNote" placeholder="Ghi chú thêm nếu có..."></div>
+    <button class="btn btn-purple" onclick="addToilet()">✅ Lưu ghi nhận</button>
+    <button class="btn btn-ghost" style="margin-top:8px;margin-bottom:4px" onclick="closeSheet('toilet')">Huỷ bỏ</button>
   </div>
-  <button class="btn btn-purple" onclick="addToilet()">✅ Lưu ghi nhận</button>
-  <button class="btn btn-ghost" style="margin-top:8px" onclick="closeSheet('toilet')">Huỷ bỏ</button>
 </div>
 
-<!-- ═══════ MOOD SHEET ═══════ -->
+<!-- ═══ MOOD SHEET ═══ -->
 <div class="sh-overlay" id="shOvMood" onclick="closeSheet('mood')"></div>
 <div class="sheet" id="shMood">
   <div class="sh-handle"></div>
-  <div class="sh-title">😴 Ghi nhận trạng thái bé</div>
-  <div class="field"><label>Giờ xảy ra</label><input type="time" id="moTime"></div>
-  <div class="field"><label>Trạng thái bé</label>
-    <div class="mood-chips">
-      <div class="mood-chip" id="mc-cry" onclick="selMood('cry')">😭 Khóc nhiều<br><small>Khó dỗ, khóc dai</small></div>
-      <div class="mood-chip" id="mc-fussy" onclick="selMood('fussy')">😤 Quấy nhẹ<br><small>Cáu kỉnh, khó chịu</small></div>
-      <div class="mood-chip" id="mc-ok" onclick="selMood('ok')">😊 Ổn định<br><small>Bình thường, vui vẻ</small></div>
-      <div class="mood-chip" id="mc-active" onclick="selMood('active')">🌙 Thức đêm<br><small>Tỉnh giấc, khó ngủ</small></div>
+  <div class="sh-body">
+    <div class="sh-title">😴 Ghi nhận trạng thái bé</div>
+    <div class="field"><label>Giờ xảy ra</label><input type="time" id="moTime"></div>
+    <div class="field">
+      <label>Trạng thái bé</label>
+      <div class="mood-chips">
+        <div class="mood-chip" id="mc-cry" onclick="selMood('cry')">😭 Khóc nhiều<br><small>Khó dỗ, khóc dai</small></div>
+        <div class="mood-chip" id="mc-fussy" onclick="selMood('fussy')">😤 Quấy nhẹ<br><small>Cáu kỉnh, khó chịu</small></div>
+        <div class="mood-chip" id="mc-ok" onclick="selMood('ok')">😊 Ổn định<br><small>Vui vẻ</small></div>
+        <div class="mood-chip" id="mc-active" onclick="selMood('active')">🌙 Thức đêm<br><small>Tỉnh giấc, khó ngủ</small></div>
+      </div>
     </div>
+    <div class="field"><label>Thời gian kéo dài (phút)</label>
+      <input type="number" id="moDur" placeholder="15" min="1" max="180" value="15">
+    </div>
+    <div class="field"><label>Ghi chú</label>
+      <input type="text" id="moNote" placeholder="Sau khi bú, co chân lên, sau khi thay tã...">
+    </div>
+    <button class="btn btn-indigo" onclick="addMood()">✅ Lưu trạng thái</button>
+    <button class="btn btn-ghost" style="margin-top:8px;margin-bottom:4px" onclick="closeSheet('mood')">Huỷ bỏ</button>
   </div>
-  <div class="field"><label>Thời gian kéo dài (phút)</label>
-    <input type="number" id="moDur" placeholder="10" min="1" max="180" value="15">
-  </div>
-  <div class="field"><label>Ghi chú</label>
-    <input type="text" id="moNote" placeholder="Sau khi bú, khi thay tã, co chân lên...">
-  </div>
-  <button class="btn btn-orange" style="background:linear-gradient(135deg,#818CF8,var(--indigo))" onclick="addMood()">✅ Lưu trạng thái</button>
-  <button class="btn btn-ghost" style="margin-top:8px" onclick="closeSheet('mood')">Huỷ bỏ</button>
 </div>
 
-<!-- ═══════ DOB MODAL (fixed CSS) ═══════ -->
+<!-- ═══ DOB MODAL ═══ -->
 <div class="mod-ov" id="dobMod" onclick="closeMod('dobMod',event)">
   <div class="mod-box">
     <span class="mod-handle"></span>
     <div class="mod-inner">
       <div class="mod-title">🎂 Ngày sinh của bé</div>
-      <div class="field">
-        <label>Ngày sinh</label>
-        <input type="date" id="dobInp" style="font-size:.92rem">
-      </div>
+      <div class="field"><label>Ngày sinh</label><input type="date" id="dobInp"></div>
       <div class="mod-acts">
         <button class="btn btn-ghost" style="flex:1" onclick="closeMod('dobMod')">Đóng</button>
         <button class="btn btn-orange" style="flex:2" onclick="saveDob()">✅ Lưu</button>
@@ -723,16 +828,13 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;
   </div>
 </div>
 
-<!-- ═══════ DATE MODAL ═══════ -->
+<!-- ═══ DATE MODAL ═══ -->
 <div class="mod-ov" id="dateMod" onclick="closeMod('dateMod',event)">
   <div class="mod-box">
     <span class="mod-handle"></span>
     <div class="mod-inner">
       <div class="mod-title">📅 Chọn ngày theo dõi</div>
-      <div class="field">
-        <label>Ngày</label>
-        <input type="date" id="dateInp">
-      </div>
+      <div class="field"><label>Ngày</label><input type="date" id="dateInp"></div>
       <div class="mod-acts">
         <button class="btn btn-ghost" style="flex:1" onclick="closeMod('dateMod')">Đóng</button>
         <button class="btn btn-orange" style="flex:2" onclick="applyDate()">Chọn ngày này</button>
@@ -743,37 +845,131 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;
 
 <div class="toast" id="toast"></div>
 
-<!-- ═══════════════════════════════════════════
-     JAVASCRIPT
-═══════════════════════════════════════════ -->
 <script>
-/* ===== STATE ===== */
-let DB = JSON.parse(localStorage.getItem('by4') || '{}');
-let cur = new Date().toISOString().slice(0,10);
-const getDay = d => { if(!DB[d]) DB[d]={milk:[],toilet:[],mood:[]}; return DB[d]; };
-const save = () => localStorage.setItem('by4', JSON.stringify(DB));
-const getDob = () => localStorage.getItem('by4_dob') || '';
+/* ════════════════════════════════════════
+   FIREBASE CONFIG
+   ↓ Thay bằng config Firebase của bạn ↓
+════════════════════════════════════════ */
+const FB_CONFIG = {
+  apiKey: "AIzaSyAgwrgTK84djK5HJyUhLpXfKUz_EUsD7Lg",
+  authDomain: "baby-check-13f30.firebaseapp.com",
+  databaseURL: "https://baby-check-13f30-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "baby-check-13f30",
+  storageBucket: "baby-check-13f30.firebasestorage.app",
+  messagingSenderId: "346190968323",
+  appId: "1:346190968323:web:f12efbf51c6374d89f4036",
+  measurementId: "G-ZDVKRY8FV4"
+};
 
-/* ===== REFERENCE DATA ===== */
-const MILK = {
+/* ── Firebase Init ── */
+let fbApp, fbDb, fbRef;
+let fbReady = false;
+let localMode = false; // fallback nếu Firebase chưa config
+
+try {
+  fbApp = firebase.initializeApp(FB_CONFIG);
+  fbDb  = firebase.database();
+  fbRef = fbDb.ref('beyeu');
+  fbReady = true;
+  localMode = false;
+  console.log('Firebase initialized OK:', FB_CONFIG.databaseURL);
+} catch(e) {
+  localMode = true;
+  fbReady = false;
+  console.warn('Firebase init failed, using localStorage:', e.message);
+}
+
+/* ════════════════════════════════════════
+   STATE
+════════════════════════════════════════ */
+let DB = {};          // local cache of firebase data
+let cur = new Date().toISOString().slice(0,10); // YYYY-MM-DD
+let curUser = null;   // 'ba' | 'me'
+let selectedCalDay = null;
+let calYear, calMonth;
+
+const USERS = {
+  ba: { name:'Ba Giôn', icon:'👨', cls:'ba' },
+  me: { name:'Mẹ Thi',  icon:'👩', cls:'me' }
+};
+
+/* ── Day key: YYYY-MM-DD ── */
+function getDay(d) {
+  if (!DB[d]) DB[d] = { milk:[], toilet:[], mood:[] };
+  return DB[d];
+}
+
+/* ── Save to Firebase or localStorage ── */
+function save(date) {
+  const dayData = DB[date] || { milk:[], toilet:[], mood:[] };
+  if (fbReady && !localMode) {
+    setSyncDot('ing');
+    const key = date.replace(/-/g,'');
+    fbRef.child(key).set(dayData)
+      .then(() => setSyncDot('ok'))
+      .catch(e => { setSyncDot('err'); console.error(e); });
+  } else {
+    localStorage.setItem('by4_db', JSON.stringify(DB));
+    setSyncDot('ok');
+  }
+}
+
+function setSyncDot(state) {
+  const d = document.getElementById('syncDot');
+  d.className = 'sync-dot ' + state;
+}
+
+/* ── Firebase realtime listener ── */
+function startFirebaseSync() {
+  if (!fbReady || localMode) return;
+  setSyncDot('ing');
+  fbRef.on('value', snap => {
+    const raw = snap.val() || {};
+    // Convert keyed data back
+    DB = {};
+    Object.entries(raw).forEach(([k, v]) => {
+      const date = k.slice(0,4)+'-'+k.slice(4,6)+'-'+k.slice(6,8);
+      DB[date] = v;
+    });
+    setSyncDot('ok');
+    renderAll();
+    if (document.getElementById('sec-diary').classList.contains('active')) renderCalendar();
+  });
+  // Also listen for connection state
+  fbDb.ref('.info/connected').on('value', snap => {
+    setSyncDot(snap.val() ? 'ok' : 'err');
+  });
+}
+
+function loadLocalDB() {
+  try { DB = JSON.parse(localStorage.getItem('by4_db') || '{}'); } catch(e){ DB={}; }
+}
+
+/* ── DOB ── */
+function getDob() { return localStorage.getItem('by4_dob') || ''; }
+
+/* ════════════════════════════════════════
+   REFERENCE DATA
+════════════════════════════════════════ */
+const MILK_REF = {
   0:{ml:[450,600],f:[8,12],mf:[45,90],n:"Dạ dày bé như trái anh đào (5ml). Bú mỗi 1.5–3h, kể cả ban đêm."},
   1:{ml:[500,700],f:[8,12],mf:[60,90],n:"Dạ dày bé cỡ trứng gà (30ml). Chưa theo lịch cố định."},
   2:{ml:[600,800],f:[7,9],mf:[90,120],n:"Bú hiệu quả hơn. Có thể ngủ 3–4h/đêm."},
-  3:{ml:[700,900],f:[6,8],mf:[120,150],n:"Cluster feed buổi chiều/tối là hoàn toàn bình thường."},
-  4:{ml:[750,950],f:[5,7],mf:[120,180],n:"Có thể ngủ đêm dài hơn. Ít cữ nhưng nhiều ml hơn."},
-  5:{ml:[800,1000],f:[5,7],mf:[150,180],n:"Bé xao lãng khi bú — tìm nơi yên tĩnh."},
+  3:{ml:[700,900],f:[6,8],mf:[120,150],n:"Cluster feed buổi chiều/tối là bình thường."},
+  4:{ml:[750,950],f:[5,7],mf:[120,180],n:"Ngủ đêm dài hơn. Ít cữ nhưng nhiều ml hơn."},
+  5:{ml:[800,1000],f:[5,7],mf:[150,180],n:"Bé xao lãng khi bú. Tìm nơi yên tĩnh."},
   6:{ml:[800,1000],f:[4,6],mf:[150,240],n:"Bắt đầu ăn dặm. Sữa vẫn là thức ăn chính."},
   7:{ml:[700,950],f:[4,5],mf:[150,240],n:"Ăn dặm tăng, có thể bớt 1–2 cữ bú."},
   8:{ml:[700,900],f:[3,5],mf:[180,240],n:"Sữa vẫn cần ≥500ml/ngày."},
-  9:{ml:[600,900],f:[3,4],mf:[180,240],n:"Tập uống cốc. Bé có thể tự cầm bình."},
-  10:{ml:[600,800],f:[3,4],mf:[180,240],n:"Chuẩn bị chuyển sang sữa bò toàn phần sau 12 tháng."},
-  11:{ml:[500,750],f:[3,4],mf:[180,240],n:"Thức ăn dặm chiếm ~50% dinh dưỡng. Sữa vẫn quan trọng."}
+  9:{ml:[600,900],f:[3,4],mf:[180,240],n:"Tập uống cốc."},
+  10:{ml:[600,800],f:[3,4],mf:[180,240],n:"Chuẩn bị chuyển sang sữa bò sau 12 tháng."},
+  11:{ml:[500,750],f:[3,4],mf:[180,240],n:"Thức ăn dặm chiếm ~50%. Sữa vẫn quan trọng."}
 };
-const DIAP = {
+const DIAP_REF = {
   0:{pMin:1,pMax:6,info:"1–4 lần/ngày (phân su đen)"},
   1:{pMin:6,pMax:8,info:"3–5 lần/ngày (vàng sệt)"},
   2:{pMin:6,pMax:8,info:"1–4 lần/ngày"},
-  3:{pMin:6,pMax:8,info:"Có thể 1 lần/ngày hoặc 1 lần/tuần (bình thường)"},
+  3:{pMin:6,pMax:8,info:"Có thể 1 lần/ngày hoặc 1 lần/tuần (BT)"},
   4:{pMin:5,pMax:8,info:"Mỗi 2–3 ngày là bình thường"},
   5:{pMin:5,pMax:8,info:"Mỗi 1–3 ngày"},
   6:{pMin:4,pMax:8,info:"Thay đổi do ăn dặm"},
@@ -783,306 +979,339 @@ const DIAP = {
   10:{pMin:4,pMax:6,info:"1–2 lần/ngày"},
   11:{pMin:4,pMax:6,info:"1–2 lần/ngày"}
 };
-// Typical fussy/colic windows by month
 const FUSSY_REF = {
-  0:{windows:["18h–23h","2h–5h sáng"],note:"Colic điển hình: 18h–23h. Thức đêm 2–4h sáng do chu kỳ ngủ ngắn."},
+  0:{windows:["18h–23h","2h–5h sáng"],note:"Colic điển hình 18h–23h. Thức đêm 2–4h sáng do chu kỳ ngủ ngắn (~45 phút)."},
   1:{windows:["17h–22h","1h–4h sáng"],note:"Đỉnh colic thường ở tuần 6. Buổi tối bé thường quấy nhất."},
-  2:{windows:["17h–21h"],note:"Colic giảm dần. Buổi tối vẫn là giờ khó chịu phổ biến nhất."},
+  2:{windows:["17h–21h"],note:"Colic giảm dần. Buổi tối vẫn là giờ khó chịu phổ biến."},
   3:{windows:["18h–21h"],note:"Colic thường tự hết. Bé có thể quấy do ngủ ngày ít hơn."},
   4:{windows:["Giảm nhiều"],note:"Ít quấy hơn rõ rệt. Bé tỉnh táo hơn ban ngày."},
-  5:{windows:["Không cố định"],note:"Bé có thể quấy khi mọc răng hoặc giai đoạn tăng trưởng."},
-  6:{windows:["Khi mọc răng"],note:"Mọc răng có thể khiến bé khó chịu bất kỳ giờ nào."},
+  5:{windows:["Không cố định"],note:"Có thể quấy khi mọc răng hoặc giai đoạn tăng trưởng."},
+  6:{windows:["Khi mọc răng"],note:"Mọc răng có thể gây khó chịu bất kỳ giờ nào."},
   7:{windows:["Lo âu xa cách"],note:"Bé có thể khóc khi xa mẹ, đặc biệt buổi tối."},
   8:{windows:["Lo âu xa cách"],note:"Lo âu xa cách đạt đỉnh. Cần nhiều vỗ về ban đêm."},
-  9:{windows:["Không cố định"],note:"Bé chủ động hơn, có thể khó chịu khi chưa được đi lại."},
-  10:{windows:["Không cố định"],note:"Giai đoạn phát triển vận động, bé thường hứng khởi hoặc bực bội."},
-  11:{windows:["Không cố định"],note:"Gần 1 tuổi — bé có cá tính rõ hơn, khóc khi không được thứ mình muốn."}
+  9:{windows:["Không cố định"],note:"Bé chủ động hơn, có thể bực bội khi chưa được đi lại."},
+  10:{windows:["Không cố định"],note:"Giai đoạn phát triển vận động, bé thường bực bội."},
+  11:{windows:["Không cố định"],note:"Bé có cá tính rõ hơn, khóc khi không được thứ mình muốn."}
 };
 const FAQS=[
-  {q:"Bú mẹ trực tiếp — làm sao biết đủ sữa?",a:"Dấu hiệu đủ sữa: tã ướt ≥6 lần/ngày (sau ngày 5), tăng cân 150–200g/tuần (3 tháng đầu), bé hài lòng sau bú, ngực mẹ mềm sau khi cho bú."},
-  {q:"Bú mẹ trực tiếp — ước lượng ml thế nào?",a:"Bé hút trung bình 4–6ml/phút. Bú 10 phút ≈ 40–60ml. Bú 20 phút mỗi bên ≈ 120–160ml. App tính toán ước tính này khi bạn nhập số phút."},
-  {q:"Khoảng cách giữa các cữ bú bao lâu?",a:"Tính từ đầu cữ này đến đầu cữ sau: 0–1 tháng: 1.5–3h | 2–3 tháng: 2–3.5h | 4–5 tháng: 3–4h | 6+ tháng: 3.5–5h."},
-  {q:"Phân xanh — bình thường không?",a:"Thỉnh thoảng là bình thường với bú mẹ. Nếu xanh liên tục + lỏng như nước, bé có thể bú ít sữa béo (hindmilk). Thử cho bú cạn một bên trước."},
-  {q:"Bé khóc đêm 2–3 giờ sáng có bình thường?",a:"Rất bình thường với trẻ 0–3 tháng. Chu kỳ ngủ ngắn (45–60 phút), bé chưa biết tự ngủ lại. Đây là đặc điểm sinh lý, không phải bệnh."}
+  {q:"Bú mẹ trực tiếp — làm sao biết đủ sữa?",a:"Dấu hiệu đủ sữa: tã ướt ≥6 lần/ngày (sau ngày 5), tăng cân 150–200g/tuần (3 tháng đầu), bé hài lòng sau bú."},
+  {q:"Bú mẹ trực tiếp — ước lượng ml thế nào?",a:"Bé hút trung bình 4–6ml/phút. Bú 10 phút ≈ 40–60ml. Bú 20 phút mỗi bên ≈ 120–160ml."},
+  {q:"Khoảng cách giữa các cữ bú bao lâu?",a:"0–1 tháng: 1.5–3h | 2–3 tháng: 2–3.5h | 4–5 tháng: 3–4h | 6+ tháng: 3.5–5h."},
+  {q:"Bé khóc đêm 2–3 giờ sáng có bình thường?",a:"Rất bình thường với trẻ 0–3 tháng. Chu kỳ ngủ ngắn (45–60 phút), bé chưa biết tự ngủ lại."}
 ];
 
-/* ===== ML ESTIMATE from minutes ===== */
-function calcEstMl(){
-  const min=parseInt(document.getElementById('minSlider').value)||15;
-  const lo=Math.round(min*4), hi=Math.round(min*6);
-  document.getElementById('estMlHint').innerHTML=
-    `≈ Ước tính <b>${lo}–${hi}ml</b> · Bé hút ~4–6ml/phút`;
+/* ════════════════════════════════════════
+   USER MANAGEMENT
+════════════════════════════════════════ */
+function selectUser(uid) {
+  curUser = uid;
+  localStorage.setItem('by4_user', uid);
+  document.getElementById('userScreen').style.display = 'none';
+  updateUserBadge();
+  startFirebaseSync();
+  if (localMode) { loadLocalDB(); renderAll(); }
 }
 
-/* ===== MILK TYPE TOGGLE ===== */
-let curMilkType='mother';
-function selectMilkType(t){
-  curMilkType=t;
-  ['mother','expressed','formula'].forEach(x=>{
-    document.getElementById('tt-'+x).classList.toggle('sel',x===t);
-  });
-  const isMother=t==='mother';
-  document.getElementById('motherSection').style.display=isMother?'':'none';
-  document.getElementById('mlSection').style.display=isMother?'none':'';
-  document.getElementById('sideField').style.display=isMother?'':'none';
+function switchUser() {
+  curUser = null;
+  document.getElementById('userScreen').style.display = 'flex';
 }
 
-/* ===== MOOD SELECTION ===== */
-let curMood='fussy';
-function selMood(m){
-  curMood=m;
-  const map={cry:'sel-cry',fussy:'sel-fussy',ok:'sel-ok',active:'sel-active'};
-  ['cry','fussy','ok','active'].forEach(x=>{
-    const el=document.getElementById('mc-'+x);
-    el.className='mood-chip';
-    if(x===m) el.className='mood-chip '+map[m];
-  });
+function updateUserBadge() {
+  if (!curUser) return;
+  const u = USERS[curUser];
+  const dot = document.getElementById('ubDot');
+  dot.textContent = u.icon;
+  dot.className = 'ub-dot ' + u.cls;
+  document.getElementById('ubName').textContent = u.name.split(' ')[0];
 }
 
-/* ===== AGE HELPERS ===== */
-function getMonths(){
-  const dob=getDob(); if(!dob) return null;
-  const d=Math.floor((new Date(cur)-new Date(dob))/86400000);
-  return d<0?null:Math.floor(d/30.44);
+/* ════════════════════════════════════════
+   DATE HELPERS — ★ FIX
+════════════════════════════════════════ */
+function getMonths() {
+  const dob = getDob(); if (!dob) return null;
+  const ms = new Date(cur+'T00:00:00') - new Date(dob+'T00:00:00');
+  const d = Math.floor(ms / 86400000);
+  return d < 0 ? null : Math.floor(d / 30.44);
 }
-function getDays(){
-  const dob=getDob(); if(!dob) return null;
-  const d=Math.floor((new Date(cur)-new Date(dob))/86400000);
-  return d<0?null:d;
-}
-function updAgePill(){
-  const dob=getDob();
-  if(!dob){document.getElementById('agePillText').textContent='Nhập ngày sinh';return;}
-  const days=Math.floor((new Date(cur)-new Date(dob))/86400000);
-  if(days<0){document.getElementById('agePillText').textContent='Ngày sinh chưa đúng';return;}
-  const m=Math.floor(days/30.44),w=Math.floor((days%30)/7),d2=days%7;
-  document.getElementById('agePillText').textContent=
-    days<30?`${Math.floor(days/7)}t ${d2}ng`:`${m}th ${w}t ${d2}ng`;
-}
-function updDateDisp(){
-  const today=new Date().toISOString().slice(0,10);
-  const d=new Date(cur+'T00:00:00');
-  const str=d.toLocaleDateString('vi-VN',{weekday:'short',day:'numeric',month:'short'});
-  document.getElementById('dateDisp').textContent=cur===today?'Hôm nay · '+str:str;
+function getDaysOld() {
+  const dob = getDob(); if (!dob) return null;
+  const ms = new Date(cur+'T00:00:00') - new Date(dob+'T00:00:00');
+  const d = Math.floor(ms / 86400000);
+  return d < 0 ? null : d;
 }
 
-/* ===== MODALS ===== */
-function openDobModal(){document.getElementById('dobInp').value=getDob();document.getElementById('dobMod').classList.add('open');}
-function saveDob(){
-  const v=document.getElementById('dobInp').value;
-  if(v){localStorage.setItem('by4_dob',v);updAgePill();renderAll();}
+/* ★ FIX: shiftDate uses local date parsing correctly */
+function shiftDate(n) {
+  const [y,m,d] = cur.split('-').map(Number);
+  const dt = new Date(y, m-1, d);
+  dt.setDate(dt.getDate() + n);
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  const nd = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+  if (nd > todayStr) { showToast('Không thể chọn ngày tương lai'); return; }
+  cur = nd;
+  updDateDisp();
+  updAgePill();
+  renderAll();
+}
+
+function updAgePill() {
+  const dob = getDob();
+  if (!dob) { document.getElementById('agePillText').textContent = 'Ngày sinh'; return; }
+  const ms = new Date(cur+'T00:00:00') - new Date(dob+'T00:00:00');
+  const days = Math.floor(ms / 86400000);
+  if (days < 0) { document.getElementById('agePillText').textContent = 'Ngày chưa đúng'; return; }
+  const mo = Math.floor(days/30.44), wk = Math.floor((days%30)/7), rm = days%7;
+  document.getElementById('agePillText').textContent =
+    days < 30 ? `${Math.floor(days/7)}t ${rm}ng` : `${mo}th ${wk}t ${rm}ng`;
+}
+
+function updDateDisp() {
+  const [y,m,d] = cur.split('-').map(Number);
+  const dt = new Date(y, m-1, d);
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  const str = dt.toLocaleDateString('vi-VN', {weekday:'short', day:'numeric', month:'short'});
+  document.getElementById('dateDisp').textContent = cur === todayStr ? 'Hôm nay · '+str : str;
+}
+
+/* ════════════════════════════════════════
+   MODALS
+════════════════════════════════════════ */
+function openDobModal() { document.getElementById('dobInp').value = getDob(); document.getElementById('dobMod').classList.add('open'); }
+function saveDob() {
+  const v = document.getElementById('dobInp').value;
+  if (v) { localStorage.setItem('by4_dob', v); updAgePill(); renderAll(); }
   document.getElementById('dobMod').classList.remove('open');
 }
-function openDateModal(){document.getElementById('dateInp').value=cur;document.getElementById('dateMod').classList.add('open');}
-function applyDate(){
-  const v=document.getElementById('dateInp').value;
-  if(v){cur=v;updDateDisp();updAgePill();renderAll();}
+function openDateModal() { document.getElementById('dateInp').value = cur; document.getElementById('dateMod').classList.add('open'); }
+function applyDate() {
+  const v = document.getElementById('dateInp').value;
+  if (v) { cur = v; updDateDisp(); updAgePill(); renderAll(); }
   document.getElementById('dateMod').classList.remove('open');
 }
-function closeMod(id,e){if(e&&e.target.id!==id)return;document.getElementById(id).classList.remove('open');}
-function shiftDate(n){
-  const d=new Date(cur+'T00:00:00');d.setDate(d.getDate()+n);
-  const nd=d.toISOString().slice(0,10);
-  if(nd>new Date().toISOString().slice(0,10)){showToast('Không thể chọn ngày tương lai');return;}
-  cur=nd;updDateDisp();updAgePill();renderAll();
-}
+function closeMod(id, e) { if (e && e.target.id !== id) return; document.getElementById(id).classList.remove('open'); }
 
-/* ===== FAB ===== */
-function toggleFab(){document.getElementById('fabG').classList.toggle('exp');}
-document.addEventListener('click',e=>{
-  if(!document.getElementById('fabG').contains(e.target))
+/* ════════════════════════════════════════
+   FAB + SHEETS
+════════════════════════════════════════ */
+function toggleFab() { document.getElementById('fabG').classList.toggle('exp'); }
+document.addEventListener('click', e => {
+  if (!document.getElementById('fabG').contains(e.target))
     document.getElementById('fabG').classList.remove('exp');
 });
 
-/* ===== SHEETS ===== */
-function openSheet(t){
+function openSheet(t) {
   document.getElementById('fabG').classList.remove('exp');
-  const now=new Date();
-  const hhmm=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-  if(t==='milk'){
-    document.getElementById('mTime').value=hhmm;
+  const now = new Date();
+  const hhmm = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  if (t === 'milk') {
+    document.getElementById('mTime').value = hhmm;
     selectMilkType('mother');
     document.getElementById('shMilk').classList.add('open');
     document.getElementById('shOvMilk').classList.add('open');
-  } else if(t==='toilet'){
-    document.getElementById('tTime').value=hhmm;
+  } else if (t === 'toilet') {
+    document.getElementById('tTime').value = hhmm;
     togglePoop();
     document.getElementById('shToilet').classList.add('open');
     document.getElementById('shOvToilet').classList.add('open');
   } else {
-    document.getElementById('moTime').value=hhmm;
+    document.getElementById('moTime').value = hhmm;
     selMood('fussy');
     document.getElementById('shMood').classList.add('open');
     document.getElementById('shOvMood').classList.add('open');
   }
 }
-function closeSheet(t){
-  const map={milk:'shMilk',toilet:'shToilet',mood:'shMood'};
-  const omap={milk:'shOvMilk',toilet:'shOvToilet',mood:'shOvMood'};
+function closeSheet(t) {
+  const map = { milk:'shMilk', toilet:'shToilet', mood:'shMood' };
+  const omap = { milk:'shOvMilk', toilet:'shOvToilet', mood:'shOvMood' };
   document.getElementById(map[t]).classList.remove('open');
   document.getElementById(omap[t]).classList.remove('open');
 }
-function togglePoop(){document.getElementById('poopF').style.display=document.getElementById('tType').value==='pee'?'none':'block';}
+function togglePoop() { document.getElementById('poopF').style.display = document.getElementById('tType').value === 'pee' ? 'none' : 'block'; }
 
-/* ===== ML CHIPS ===== */
-function pickMl(v){document.getElementById('mAmt').value=v;document.querySelectorAll('.ml-chip').forEach(c=>c.classList.toggle('sel',parseInt(c.textContent)===v));}
-function clearChips(){document.querySelectorAll('.ml-chip').forEach(c=>c.classList.remove('sel'));}
+/* ════════════════════════════════════════
+   MILK TYPE + SLIDER
+════════════════════════════════════════ */
+let curMilkType = 'mother';
+function selectMilkType(t) {
+  curMilkType = t;
+  ['mother','expressed','formula'].forEach(x => document.getElementById('tt-'+x).classList.toggle('sel', x===t));
+  document.getElementById('motherSection').style.display = t==='mother' ? '' : 'none';
+  document.getElementById('mlSection').style.display = t==='mother' ? 'none' : '';
+  document.getElementById('sideField').style.display = t==='mother' ? '' : 'none';
+}
+function calcEstMl() {
+  const min = parseInt(document.getElementById('minSlider').value)||15;
+  document.getElementById('estMlHint').innerHTML = `≈ Ước tính <b>${min*4}–${min*6}ml</b> · ~4–6ml/phút`;
+}
+function pickMl(v) { document.getElementById('mAmt').value = v; document.querySelectorAll('.ml-chip').forEach(c=>c.classList.toggle('sel', parseInt(c.textContent)===v)); }
+function clearChips() { document.querySelectorAll('.ml-chip').forEach(c=>c.classList.remove('sel')); }
 
-/* ===== ADD MILK ===== */
-function addMilk(){
-  const time=document.getElementById('mTime').value;
-  const note=document.getElementById('mNote').value.trim();
-  if(!time){showToast('⏰ Vui lòng nhập giờ bú');return;}
+/* ════════════════════════════════════════
+   MOOD SELECTION
+════════════════════════════════════════ */
+let curMood = 'fussy';
+function selMood(m) {
+  curMood = m;
+  const map = {cry:'sel-cry',fussy:'sel-fussy',ok:'sel-ok',active:'sel-active'};
+  ['cry','fussy','ok','active'].forEach(x => {
+    const el = document.getElementById('mc-'+x);
+    el.className = 'mood-chip' + (x===m ? ' '+map[m] : '');
+  });
+}
 
-  let amount,minutes=null;
-  if(curMilkType==='mother'){
-    minutes=parseInt(document.getElementById('minSlider').value)||15;
-    // midpoint estimate: 5ml/min
-    amount=Math.round(minutes*5);
+/* ════════════════════════════════════════
+   ADD RECORDS
+════════════════════════════════════════ */
+function addMilk() {
+  const time = document.getElementById('mTime').value;
+  const note = document.getElementById('mNote').value.trim();
+  if (!time) { showToast('⏰ Vui lòng nhập giờ bú'); return; }
+  let amount, minutes = null;
+  if (curMilkType === 'mother') {
+    minutes = parseInt(document.getElementById('minSlider').value)||15;
+    amount = Math.round(minutes * 5);
   } else {
-    amount=parseInt(document.getElementById('mAmt').value);
-    if(!amount||amount<5){showToast('🍼 Vui lòng nhập lượng ml');return;}
+    amount = parseInt(document.getElementById('mAmt').value);
+    if (!amount || amount < 5) { showToast('🍼 Vui lòng nhập lượng ml'); return; }
   }
-
-  const side=curMilkType==='mother'?document.getElementById('mSide').value:null;
-  const day=getDay(cur);
-  day.milk.push({time,amount,type:curMilkType,note,id:Date.now(),minutes,side});
+  const side = curMilkType==='mother' ? document.getElementById('mSide').value : null;
+  const day = getDay(cur);
+  day.milk.push({ time, amount, type:curMilkType, note, id:Date.now(), minutes, side, by:curUser });
   day.milk.sort((a,b)=>a.time.localeCompare(b.time));
-  save();
-  document.getElementById('mAmt').value='';
-  document.getElementById('mNote').value='';
-  document.getElementById('minSlider').value=15;
-  document.getElementById('minVal').textContent='15';
-  calcEstMl();
-  clearChips();
-  closeSheet('milk');
-  renderAll();
-  const extra=curMilkType==='mother'?` (${minutes} phút, ~${amount}ml ước tính)`:``;
-  showToast(`✅ Đã lưu cữ bú ${amount}ml lúc ${time}${extra}`);
+  save(cur); closeSheet('milk'); renderAll();
+  showToast(`✅ ${amount}ml lúc ${time}` + (curMilkType==='mother'?` (~${minutes}ph)`:''));
 }
 
-/* ===== ADD TOILET ===== */
-function addToilet(){
-  const time=document.getElementById('tTime').value;
-  const type=document.getElementById('tType').value;
-  const color=document.getElementById('tColor').value;
-  const texture=document.getElementById('tTex').value;
-  if(!time){showToast('⏰ Vui lòng nhập giờ');return;}
-  const day=getDay(cur);
-  day.toilet.push({time,type,color,texture,id:Date.now()});
+function addToilet() {
+  const time = document.getElementById('tTime').value;
+  const type = document.getElementById('tType').value;
+  const color = document.getElementById('tColor').value;
+  const texture = document.getElementById('tTex').value;
+  if (!time) { showToast('⏰ Vui lòng nhập giờ'); return; }
+  const day = getDay(cur);
+  day.toilet.push({ time, type, color, texture, id:Date.now(), by:curUser });
   day.toilet.sort((a,b)=>a.time.localeCompare(b.time));
-  save();closeSheet('toilet');renderAll();
-  const lb={pee:'Đi tè 💧',poop:'Đi ị 💩',both:'Tè + ị 💧💩'};
+  save(cur); closeSheet('toilet'); renderAll();
+  const lb = {pee:'Đi tè 💧',poop:'Đi ị 💩',both:'Tè + ị 💧💩'};
   showToast(`✅ ${lb[type]} lúc ${time}`);
-  if(color==='red'||color==='white')setTimeout(()=>showToast('⚠️ Phân màu bất thường — xem bác sĩ!'),2400);
+  if (color==='red'||color==='white') setTimeout(()=>showToast('⚠️ Phân màu bất thường!'),2400);
 }
 
-/* ===== ADD MOOD ===== */
-function addMood(){
-  const time=document.getElementById('moTime').value;
-  const dur=parseInt(document.getElementById('moDur').value)||15;
-  const note=document.getElementById('moNote').value.trim();
-  if(!time){showToast('⏰ Vui lòng nhập giờ');return;}
-  if(!curMood){showToast('Vui lòng chọn trạng thái');return;}
-  const day=getDay(cur);
-  day.mood.push({time,mood:curMood,dur,note,id:Date.now()});
+function addMood() {
+  const time = document.getElementById('moTime').value;
+  const dur = parseInt(document.getElementById('moDur').value)||15;
+  const note = document.getElementById('moNote').value.trim();
+  if (!time) { showToast('⏰ Vui lòng nhập giờ'); return; }
+  const day = getDay(cur);
+  day.mood.push({ time, mood:curMood, dur, note, id:Date.now(), by:curUser });
   day.mood.sort((a,b)=>a.time.localeCompare(b.time));
-  save();closeSheet('mood');renderAll();
-  const lb={cry:'Khóc nhiều 😭',fussy:'Quấy nhẹ 😤',ok:'Ổn định 😊',active:'Thức đêm 🌙'};
-  showToast(`✅ Ghi nhận: ${lb[curMood]} lúc ${time}`);
+  save(cur); closeSheet('mood'); renderAll();
+  const lb = {cry:'Khóc nhiều 😭',fussy:'Quấy nhẹ 😤',ok:'Ổn định 😊',active:'Thức đêm 🌙'};
+  showToast(`✅ ${lb[curMood]} lúc ${time}`);
 }
 
-/* ===== DELETE ===== */
-function delMilk(id){const d=getDay(cur);d.milk=d.milk.filter(l=>l.id!==id);save();renderAll();}
-function delToilet(id){const d=getDay(cur);d.toilet=d.toilet.filter(l=>l.id!==id);save();renderAll();}
-function delMood(id){const d=getDay(cur);d.mood=d.mood.filter(l=>l.id!==id);save();renderAll();}
+/* ════════════════════════════════════════
+   DELETE
+════════════════════════════════════════ */
+function delMilk(id) { const d=getDay(cur); d.milk=d.milk.filter(l=>l.id!==id); save(cur); renderAll(); }
+function delToilet(id) { const d=getDay(cur); d.toilet=d.toilet.filter(l=>l.id!==id); save(cur); renderAll(); }
+function delMood(id) { const d=getDay(cur); d.mood=d.mood.filter(l=>l.id!==id); save(cur); renderAll(); }
 
-/* ===== RENDER ALL ===== */
-function renderAll(){
-  const d=getDay(cur);
-  renderMilk(d);renderToilet(d);renderMood(d);renderAnalysis(d);
+/* ════════════════════════════════════════
+   RENDER ALL
+════════════════════════════════════════ */
+function renderAll() {
+  const d = getDay(cur);
+  renderMilk(d); renderToilet(d); renderMood(d); renderAnalysis(d);
 }
 
-/* ===== RENDER MILK ===== */
-function renderMilk(day){
-  const logs=day.milk||[];
-  const total=logs.reduce((s,l)=>s+l.amount,0);
-  const feeds=logs.length;
-  const avg=feeds?Math.round(total/feeds):0;
-  let intv='—';
-  if(logs.length>=2){
-    const mins=logs.map(l=>{const[h,m]=l.time.split(':');return+h*60+ +m;});
-    const diffs=[];for(let i=1;i<mins.length;i++)diffs.push(mins[i]-mins[i-1]);
-    intv=(diffs.reduce((a,b)=>a+b,0)/diffs.length/60).toFixed(1);
+/* ── Author badge HTML ── */
+function authorBadge(by) {
+  if (!by || !USERS[by]) return '';
+  const u = USERS[by];
+  return `<span class="tl-author ${u.cls}">${u.icon} ${u.name.split(' ')[0]}</span>`;
+}
+
+/* ════════════════════════════════════════
+   RENDER MILK
+════════════════════════════════════════ */
+function renderMilk(day) {
+  const logs = day.milk || [];
+  const total = logs.reduce((s,l)=>s+l.amount, 0);
+  const feeds = logs.length;
+  const avg = feeds ? Math.round(total/feeds) : 0;
+  let intv = '—';
+  if (logs.length >= 2) {
+    const mins = logs.map(l=>{const[h,m]=l.time.split(':');return+h*60+ +m;});
+    const diffs=[]; for(let i=1;i<mins.length;i++) diffs.push(mins[i]-mins[i-1]);
+    intv = (diffs.reduce((a,b)=>a+b,0)/diffs.length/60).toFixed(1);
   }
-  document.getElementById('s-ml').textContent=total;
-  document.getElementById('s-f').textContent=feeds;
-  document.getElementById('s-avg').textContent=avg||'—';
-  document.getElementById('s-int').textContent=intv;
+  document.getElementById('s-ml').textContent = total;
+  document.getElementById('s-f').textContent = feeds;
+  document.getElementById('s-avg').textContent = avg||'—';
+  document.getElementById('s-int').textContent = intv;
 
-  const mo=getMonths();
-  const ref=mo!==null?MILK[Math.min(mo,11)]:null;
-  if(ref){
-    const[mMin,mMax]=ref.ml,[fMin,fMax]=ref.f;
-    const mp=Math.min(Math.round(total/mMax*100),120);
-    const fp=Math.min(Math.round(feeds/fMax*100),120);
-    document.getElementById('pMlLbl').textContent=`${total} / ${mMin}–${mMax} ml`;
-    document.getElementById('pFLbl').textContent=`${feeds} / ${fMin}–${fMax} cữ`;
-    document.getElementById('pMlF').style.width=mp+'%';
-    document.getElementById('pFF').style.width=fp+'%';
+  const mo = getMonths();
+  const ref = mo!==null ? MILK_REF[Math.min(mo,11)] : null;
+  if (ref) {
+    const [mMin,mMax]=ref.ml, [fMin,fMax]=ref.f;
+    document.getElementById('pMlLbl').textContent = `${total} / ${mMin}–${mMax} ml`;
+    document.getElementById('pFLbl').textContent = `${feeds} / ${fMin}–${fMax} cữ`;
+    document.getElementById('pMlF').style.width = Math.min(Math.round(total/mMax*100),120)+'%';
+    document.getElementById('pFF').style.width = Math.min(Math.round(feeds/fMax*100),120)+'%';
     let ins;
-    if(total<mMin*.8){setPill('milkPill','b','⚠️ Lượng sữa chưa đủ — cần bổ sung thêm');ins=`Tổng <b>${total}ml</b> thấp hơn tối thiểu <b>${mMin}ml</b>. Tăng số cữ hoặc ml/cữ.<br>📝 ${ref.n}`;}
-    else if(total>mMax*1.15){setPill('milkPill','w','⚠️ Lượng sữa hơi nhiều');ins=`Tổng <b>${total}ml</b> cao hơn tiêu chuẩn <b>${mMax}ml</b>.<br>📝 ${ref.n}`;}
-    else{setPill('milkPill','g','✅ Lượng sữa hôm nay đạt tiêu chuẩn!');ins=`Tổng <b>${total}ml</b> ✅ | Số cữ: <b>${feeds}</b> (chuẩn ${fMin}–${fMax}) | TB: <b>${avg}ml/cữ</b>.<br>📝 ${ref.n}`;}
-    document.getElementById('milkIns').innerHTML=`<h4>💡 Nhận xét (${getDays()} ngày tuổi)</h4><p>${ins}</p>`;
+    if (total < mMin*.8) { setPill('milkPill','b','⚠️ Lượng sữa chưa đủ — cần bổ sung thêm'); ins=`Tổng <b>${total}ml</b> thấp hơn tối thiểu <b>${mMin}ml</b>. Tăng số cữ hoặc ml/cữ.<br>📝 ${ref.n}`; }
+    else if (total > mMax*1.15) { setPill('milkPill','w','⚠️ Lượng sữa hơi nhiều'); ins=`Tổng <b>${total}ml</b> cao hơn tiêu chuẩn <b>${mMax}ml</b>.<br>📝 ${ref.n}`; }
+    else { setPill('milkPill','g','✅ Lượng sữa hôm nay đạt tiêu chuẩn!'); ins=`Tổng <b>${total}ml</b> ✅ | Số cữ: <b>${feeds}</b> | TB: <b>${avg}ml/cữ</b>.<br>📝 ${ref.n}`; }
+    document.getElementById('milkIns').innerHTML = `<h4>💡 Nhận xét (${getDaysOld()} ngày tuổi)</h4><p>${ins}</p>`;
   } else {
     setPill('milkPill','n','⏳ Nhập ngày sinh để đánh giá');
-    document.getElementById('pMlLbl').textContent=`${total} / — ml`;
-    document.getElementById('pFLbl').textContent=`${feeds} / — cữ`;
-    document.getElementById('milkIns').innerHTML='<h4>💡 Nhận xét</h4><p>Nhập ngày sinh của bé để xem đánh giá.</p>';
+    document.getElementById('pMlLbl').textContent = `${total} / — ml`;
+    document.getElementById('pFLbl').textContent = `${feeds} / — cữ`;
+    document.getElementById('milkIns').innerHTML = '<h4>💡 Nhận xét</h4><p>Nhập ngày sinh để xem đánh giá.</p>';
   }
 
-  // ★ FIX: single clean 24-bar chart, no duplicate axis
-  const bk=new Array(24).fill(0);
-  logs.forEach(l=>bk[parseInt(l.time.split(':')[0])]+=l.amount);
-  const mx=Math.max(...bk,1);
-  const chartEl=document.getElementById('hChart');
-  chartEl.innerHTML=''; // clear first
-  bk.forEach((v,i)=>{
-    const col=document.createElement('div');
-    col.className='hc-col';
-    const bar=document.createElement('div');
-    bar.className='hc-bar milk-bar';
-    bar.style.height=Math.round(v/mx*100)+'%';
-    bar.title=`${i}:00 — ${v}ml`;
-    col.appendChild(bar);
-    chartEl.appendChild(col);
+  // Hour chart
+  const bk = new Array(24).fill(0);
+  logs.forEach(l => bk[parseInt(l.time.split(':')[0])] += l.amount);
+  const mx = Math.max(...bk, 1);
+  const chartEl = document.getElementById('hChart');
+  chartEl.innerHTML = '';
+  bk.forEach((v,i) => {
+    const col = document.createElement('div'); col.className='hc-col';
+    const bar = document.createElement('div'); bar.className='hc-bar milk-bar';
+    bar.style.height = Math.round(v/mx*100)+'%'; bar.title = `${i}h: ${v}ml`;
+    col.appendChild(bar); chartEl.appendChild(col);
   });
 
-  if(logs.length>=2){
-    const night=logs.filter(l=>{const h=+l.time.split(':')[0];return h>=22||h<6;}).length;
-    const cluster=logs.filter(l=>{const h=+l.time.split(':')[0];return h>=17&&h<22;}).length;
-    let txt='';
-    if(night>3)txt+=`🌙 Bé bú <b>${night} cữ ban đêm</b> (22h–6h) — bình thường ở trẻ nhỏ. `;
-    if(cluster>=2)txt+=`🌆 <b>Cluster feed ${cluster} cữ</b> buổi tối — bé đang tích trữ sữa cho đêm. `;
-    if(!txt)txt=`Phân bố cữ bú đều. Cữ đêm (22h–6h): ${night} cữ.`;
-    document.getElementById('hourIns').innerHTML=`<h4>🌙 Phân tích thời điểm bú</h4><p>${txt}</p>`;
+  if (logs.length >= 2) {
+    const night = logs.filter(l=>{const h=+l.time.split(':')[0];return h>=22||h<6;}).length;
+    const cluster = logs.filter(l=>{const h=+l.time.split(':')[0];return h>=17&&h<22;}).length;
+    let txt = '';
+    if (night>3) txt += `🌙 Bé bú <b>${night} cữ ban đêm</b> (22h–6h) — bình thường ở trẻ nhỏ. `;
+    if (cluster>=2) txt += `🌆 <b>Cluster feed ${cluster} cữ</b> buổi tối — bé đang tích trữ sữa cho đêm. `;
+    if (!txt) txt = `Phân bố cữ bú đều. Cữ đêm: ${night} cữ.`;
+    document.getElementById('hourIns').innerHTML = `<h4>🌙 Phân tích thời điểm bú</h4><p>${txt}</p>`;
   }
 
-  // timeline
-  const tl=document.getElementById('milkTL');
-  if(!logs.length){tl.innerHTML='<div class="empty"><div class="ei">🍼</div><p>Chưa có cữ bú nào<br><small>Nhấn <b>+</b> góc phải để thêm</small></p></div>';return;}
-  const TL={mother:'Bú mẹ trực tiếp',expressed:'Sữa mẹ vắt',formula:'Sữa công thức'};
-  const SD={left:'Trái',right:'Phải',both:'Hai bên'};
-  tl.innerHTML=[...logs].reverse().map(l=>{
-    let desc=`${l.amount}ml`;
-    if(l.type==='mother')desc+=` (~${l.minutes||'?'}ph)`;
-    desc+=` · ${TL[l.type]||l.type}`;
-    if(l.side&&l.type==='mother')desc+=` · ${SD[l.side]||''}`;
-    return`<div class="tl-item">
+  // Timeline
+  const tl = document.getElementById('milkTL');
+  if (!logs.length) { tl.innerHTML='<div class="empty"><div class="ei">🍼</div><p>Chưa có cữ bú nào<br><small>Nhấn <b>+</b> góc phải</small></p></div>'; return; }
+  const TLN = {mother:'Bú mẹ trực tiếp',expressed:'Sữa mẹ vắt',formula:'Sữa công thức'};
+  const SD = {left:'Trái',right:'Phải',both:'Hai bên'};
+  tl.innerHTML = [...logs].reverse().map(l=>{
+    let desc = `${l.amount}ml`;
+    if (l.type==='mother') desc += ` (~${l.minutes||'?'}ph)`;
+    desc += ` · ${TLN[l.type]||l.type}`;
+    if (l.side && l.type==='mother') desc += ` · ${SD[l.side]||''}`;
+    return `<div class="tl-item">
       <div class="tl-ic milk">🍼</div>
       <div class="tl-body">
-        <div class="tl-time">${l.time}</div>
+        <div class="tl-time">${l.time} ${authorBadge(l.by)}</div>
         <div class="tl-desc">${desc}</div>
         ${l.note?`<div class="tl-note">📝 ${l.note}</div>`:''}
       </div>
@@ -1091,128 +1320,197 @@ function renderMilk(day){
   }).join('');
 }
 
-/* ===== RENDER TOILET ===== */
-function renderToilet(day){
-  const logs=day.toilet||[];
-  const pees=logs.filter(l=>l.type==='pee'||l.type==='both').length;
-  const poops=logs.filter(l=>l.type==='poop'||l.type==='both').length;
-  document.getElementById('s-pee').textContent=pees;
-  document.getElementById('s-poop').textContent=poops;
-  const mo=getMonths();
-  const ref=mo!==null?DIAP[Math.min(mo,11)]:null;
-  if(ref){
-    if(pees<ref.pMin){setPill('toiletPill','b',`⚠️ Tè ít (${pees}/${ref.pMin}–${ref.pMax}) — bé có thể bú chưa đủ`);document.getElementById('toiletIns').innerHTML=`<h4>💡 Nhận xét</h4><p>Tè <b>${pees} lần</b>, cần ít nhất <b>${ref.pMin} lần</b>/ngày.<br>Tiêu chuẩn đi nặng: <b>${ref.info}</b></p>`;}
-    else{setPill('toiletPill','g',`✅ Tè ổn (${pees} lần, chuẩn ${ref.pMin}–${ref.pMax})`);document.getElementById('toiletIns').innerHTML=`<h4>💡 Nhận xét</h4><p>Tè <b>${pees} lần</b> ✅ | Ị hôm nay: <b>${poops} lần</b><br>Chuẩn đi nặng: <b>${ref.info}</b></p>`;}
-    const bad=logs.filter(l=>(l.type==='poop'||l.type==='both')&&(l.color==='red'||l.color==='white'));
-    if(bad.length)document.getElementById('toiletIns').innerHTML+=`<div style="margin-top:10px;padding:10px;background:var(--red-bg);border-radius:var(--r-sm);border:1.5px solid #FECACA;font-size:.82rem"><b style="color:var(--red)">🚨 CẢNH BÁO:</b> Phân màu bất thường — hãy đến gặp bác sĩ ngay!</div>`;
+/* ════════════════════════════════════════
+   RENDER TOILET
+════════════════════════════════════════ */
+function renderToilet(day) {
+  const logs = day.toilet || [];
+  const pees = logs.filter(l=>l.type==='pee'||l.type==='both').length;
+  const poops = logs.filter(l=>l.type==='poop'||l.type==='both').length;
+  document.getElementById('s-pee').textContent = pees;
+  document.getElementById('s-poop').textContent = poops;
+  const mo = getMonths(), ref = mo!==null ? DIAP_REF[Math.min(mo,11)] : null;
+  if (ref) {
+    if (pees<ref.pMin) { setPill('toiletPill','b',`⚠️ Tè ít (${pees}/${ref.pMin}–${ref.pMax})`); document.getElementById('toiletIns').innerHTML=`<h4>💡 Nhận xét</h4><p>Tè <b>${pees} lần</b>, cần ít nhất <b>${ref.pMin} lần</b>/ngày.<br>Chuẩn đi nặng: <b>${ref.info}</b></p>`; }
+    else { setPill('toiletPill','g',`✅ Tè ổn (${pees} lần)`); document.getElementById('toiletIns').innerHTML=`<h4>💡 Nhận xét</h4><p>Tè <b>${pees} lần</b> ✅ | Ị: <b>${poops} lần</b><br>Chuẩn đi nặng: <b>${ref.info}</b></p>`; }
+    const bad = logs.filter(l=>(l.type==='poop'||l.type==='both')&&(l.color==='red'||l.color==='white'));
+    if (bad.length) document.getElementById('toiletIns').innerHTML+=`<div style="margin-top:10px;padding:10px;background:var(--red-bg);border-radius:var(--r-sm);border:1.5px solid #FECACA;font-size:.82rem"><b style="color:var(--red)">🚨 CẢNH BÁO:</b> Phân màu bất thường — gặp bác sĩ ngay!</div>`;
   } else {
     setPill('toiletPill','n','⏳ Nhập ngày sinh để đánh giá');
     document.getElementById('toiletIns').innerHTML='<h4>💡 Nhận xét</h4><p>Nhập ngày sinh để đánh giá.</p>';
   }
-  const tl=document.getElementById('toiletTL');
-  if(!logs.length){tl.innerHTML='<div class="empty"><div class="ei">🚼</div><p>Chưa có ghi nhận vệ sinh<br><small>Nhấn <b>+</b> góc phải để thêm</small></p></div>';return;}
-  const TI={pee:'💧',poop:'💩',both:'💧💩'},TL2={pee:'Đi tè',poop:'Đi ị',both:'Tè + ị'};
+  const tl = document.getElementById('toiletTL');
+  if (!logs.length) { tl.innerHTML='<div class="empty"><div class="ei">🚼</div><p>Chưa có ghi nhận<br><small>Nhấn <b>+</b> góc phải</small></p></div>'; return; }
+  const TI={pee:'💧',poop:'💩',both:'💧💩'}, TL2={pee:'Đi tè',poop:'Đi ị',both:'Tè + ị'};
   const CL={normal:'🟡 Vàng BT',green:'🟢 Xanh',brown:'🟤 Nâu',black:'⚫ Đen',red:'🔴 Đỏ/máu ⚠️',white:'⚪ Trắng ⚠️'};
-  const TX={normal:'Bình thường',loose:'Lỏng',watery:'Toé nước',hard:'Cứng',mucus:'Có nhầy'};
-  tl.innerHTML=[...logs].reverse().map(l=>`<div class="tl-item"><div class="tl-ic ${l.type==='pee'?'pee':'poop'}">${TI[l.type]||'🚼'}</div><div class="tl-body"><div class="tl-time">${l.time}</div><div class="tl-desc">${TL2[l.type]||l.type}</div>${(l.type==='poop'||l.type==='both')?`<div class="tl-note">${CL[l.color]||''} · ${TX[l.texture]||''}</div>`:''}</div><button class="tl-del" onclick="delToilet(${l.id})">✕</button></div>`).join('');
+  const TX={normal:'BT',loose:'Lỏng',watery:'Toé nước',hard:'Cứng',mucus:'Có nhầy'};
+  tl.innerHTML = [...logs].reverse().map(l=>`
+    <div class="tl-item">
+      <div class="tl-ic ${l.type==='pee'?'pee':'poop'}">${TI[l.type]||'🚼'}</div>
+      <div class="tl-body">
+        <div class="tl-time">${l.time} ${authorBadge(l.by)}</div>
+        <div class="tl-desc">${TL2[l.type]||l.type}</div>
+        ${(l.type==='poop'||l.type==='both')?`<div class="tl-note">${CL[l.color]||''} · ${TX[l.texture]||''}</div>`:''}
+      </div>
+      <button class="tl-del" onclick="delToilet(${l.id})">✕</button>
+    </div>`).join('');
 }
 
-/* ===== RENDER MOOD ===== */
-function renderMood(day){
-  const logs=day.mood||[];
-  const cries=logs.filter(l=>l.mood==='cry').length;
-  const fussies=logs.filter(l=>l.mood==='fussy').length;
-  document.getElementById('s-cry').textContent=cries;
-  document.getElementById('s-fussy').textContent=fussies;
+/* ════════════════════════════════════════
+   RENDER MOOD + ★ RECOMMENDATION
+════════════════════════════════════════ */
+function renderMood(day) {
+  const logs = day.mood || [];
+  const mlLogs = day.milk || [];
+  const cries = logs.filter(l=>l.mood==='cry').length;
+  const fussies = logs.filter(l=>l.mood==='fussy').length;
+  document.getElementById('s-cry').textContent = cries;
+  document.getElementById('s-fussy').textContent = fussies;
 
-  // 24h grid: each cell = 1 hour
-  const row=document.getElementById('moodRow');
-  row.innerHTML='';
-  // build hour severity map
-  const hourMap=new Array(24).fill(null);
-  logs.forEach(l=>{
-    const h=parseInt(l.time.split(':')[0]);
-    const sev={cry:2,fussy:1,active:1,ok:0}[l.mood]||0;
-    if(hourMap[h]===null||sev>hourMap[h])hourMap[h]=sev;
+  // ★ SMART RECOMMENDATION
+  const mo = getMonths();
+  const ref = mo!==null ? MILK_REF[Math.min(mo,11)] : null;
+  const recEl = document.getElementById('recContent');
+  const recs = [];
+
+  if (ref && mlLogs.length > 0) {
+    const total = mlLogs.reduce((s,l)=>s+l.amount,0);
+    const [mMin,mMax] = ref.ml, [fMin,fMax] = ref.f;
+    const remaining = mMax - total;
+    const feedsDone = mlLogs.length;
+    const avgMl = Math.round(total/feedsDone);
+
+    // Last feed
+    const lastFeed = mlLogs[mlLogs.length-1];
+    const [lh,lm] = lastFeed.time.split(':').map(Number);
+    const lastFeedMins = lh*60+lm;
+    const nowMins = new Date().getHours()*60+new Date().getMinutes();
+    const sinceLast = nowMins - lastFeedMins;
+
+    // Next feed suggestion
+    const idealInterval = Math.floor((ref.ml[1]/ref.f[0])/avgMl*60);
+    const nextFeedIn = Math.max(30, Math.min(180, ref.mf[1]/5*10));
+    const nextH = Math.floor((lastFeedMins + nextFeedIn)/60) % 24;
+    const nextM = (lastFeedMins + nextFeedIn) % 60;
+    recs.push({ icon:'🍼', text:`Cữ tiếp theo: khoảng <b>${String(nextH).padStart(2,'0')}:${String(nextM).padStart(2,'0')}</b> (~${Math.round(ref.mf[0]/2+ref.mf[1]/2)}ml theo chuẩn tháng tuổi)` });
+
+    if (remaining > 0 && feedsDone < fMax) {
+      recs.push({ icon:'📊', text:`Còn cần <b>~${remaining}ml</b> nữa hôm nay. Còn khoảng <b>${fMax-feedsDone}</b> cữ nên bú.` });
+    }
+    if (total < mMin*0.5 && feedsDone < 3) {
+      recs.push({ icon:'⚠️', text:`Lượng sữa hôm nay chưa đủ. Hãy đánh thức bé dậy bú nếu đã ngủ hơn <b>3–4 giờ</b>.` });
+    }
+  } else if (mlLogs.length === 0) {
+    recs.push({ icon:'🍼', text:'Ghi nhận cữ bú đầu tiên để nhận đề xuất cữ tiếp theo.' });
+  }
+
+  // Mood-based suggestions
+  if (cries > 0 || fussies > 0) {
+    const lastMood = logs.filter(l=>l.mood==='cry'||l.mood==='fussy').pop();
+    if (lastMood) {
+      const [lh] = lastMood.time.split(':').map(Number);
+      if (lh >= 17 && lh <= 23) {
+        recs.push({ icon:'🌆', text:'Bé đang trong giờ cao điểm colic buổi tối. Thử: địu bé, cho bú, massage bụng theo chiều kim đồng hồ, giảm ánh sáng + tiếng ồn.' });
+      } else if (lh >= 1 && lh <= 5) {
+        recs.push({ icon:'🌙', text:'Bé thức đêm do chu kỳ ngủ ngắn (~45 phút). Thử vỗ nhẹ lưng, shushing (tiếng "ssshh"), không bật đèn sáng.' });
+      } else {
+        recs.push({ icon:'💡', text:'Kiểm tra: Bé có đói? (khoảng cách cữ bú > 3h). Có đầy hơi? (co chân lên). Có khó chịu tã? Cần ợ hơi?' });
+      }
+    }
+  }
+
+  if (mo !== null && mo <= 3) {
+    recs.push({ icon:'🤱', text:`Ở ${mo} tháng tuổi, bé bú mẹ thường cần bú mỗi <b>2–3 giờ</b>. Cữ cluster feed chiều tối là bình thường — không cần lo.` });
+  }
+
+  recEl.innerHTML = recs.length ? recs.map(r=>`
+    <div class="rec-item"><div class="rec-icon">${r.icon}</div><div>${r.text}</div></div>`).join('')
+    : '<div class="empty" style="padding:12px"><div class="ei">✅</div><p>Không có kiến nghị đặc biệt hôm nay</p></div>';
+
+  // Mood 24h map
+  const hourMap = new Array(24).fill(null);
+  logs.forEach(l => {
+    const h = parseInt(l.time.split(':')[0]);
+    const sev = {cry:2,fussy:1,active:1,ok:0}[l.mood]||0;
+    if (hourMap[h]===null || sev>hourMap[h]) hourMap[h]=sev;
   });
-  hourMap.forEach((sev,h)=>{
-    const cell=document.createElement('div');
-    cell.className='mood-cell';
-    cell.title=`${h}:00`;
-    if(sev===2)cell.classList.add('has-event');
-    else if(sev===1)cell.classList.add('has-event','mild');
-    if(sev!==null&&sev>=0){
+  const row = document.getElementById('moodRow');
+  row.innerHTML='';
+  hourMap.forEach((sev,h) => {
+    const cell = document.createElement('div'); cell.className='mood-cell'; cell.title=`${h}:00`;
+    if (sev!==null && sev>=0) {
       const inner=document.createElement('div');
-      inner.className='mood-bar-inner '+(['ok','fussy','cry'][sev]||'');
-      if(sev===0)inner.style.opacity='0.3';
+      const cls=['ok','fussy','cry'][sev]||'ok';
+      inner.className='mood-bar-inner '+cls;
+      if(sev===0) inner.style.opacity='.3';
       cell.appendChild(inner);
     }
     row.appendChild(cell);
   });
 
-  // axis
-  document.getElementById('moodAxis').innerHTML=
-    [0,3,6,9,12,15,18,21].map(h=>`<span>${h}h</span>`).join('');
-
-  // Age-based reference
-  const mo=getMonths();
-  const mRef=mo!==null?FUSSY_REF[Math.min(mo,11)]:null;
-  const ageEl=document.getElementById('moodAgeRef');
-  if(mRef){
-    ageEl.innerHTML=`
-      <div style="padding:10px 12px;background:var(--indigo-bg);border-radius:var(--r-md);border:1.5px solid rgba(99,102,241,.2);margin-bottom:10px">
-        <div style="font-weight:700;font-size:.8rem;color:#3730A3;margin-bottom:6px">🕐 Khung giờ điển hình ở ${mo} tháng tuổi</div>
-        <div style="font-size:.82rem;color:var(--t2)">
-          ${mRef.windows.map(w=>`<span style="display:inline-block;background:rgba(239,68,68,.12);border-radius:20px;padding:3px 10px;margin:2px 3px 2px 0;font-weight:700;color:var(--red);font-size:.78rem">${w}</span>`).join('')}
-          <p style="margin-top:8px;line-height:1.6">${mRef.note}</p>
-        </div>
-      </div>`;
+  // Age ref
+  const mRef = mo!==null ? FUSSY_REF[Math.min(mo,11)] : null;
+  const ageEl = document.getElementById('moodAgeRef');
+  if (mRef) {
+    ageEl.innerHTML=`<div style="padding:10px 12px;background:var(--indigo-bg);border-radius:var(--r-md);border:1.5px solid rgba(99,102,241,.2)">
+      <div style="font-weight:800;font-size:.8rem;color:#3730A3;margin-bottom:6px">🕐 Khung giờ điển hình — ${mo} tháng tuổi</div>
+      <div>${mRef.windows.map(w=>`<span style="display:inline-block;background:rgba(239,68,68,.12);border-radius:20px;padding:3px 10px;margin:2px 3px 2px 0;font-weight:700;color:var(--red);font-size:.78rem">${w}</span>`).join('')}</div>
+      <p style="font-size:.8rem;color:var(--t2);margin-top:8px;line-height:1.6">${mRef.note}</p>
+    </div>`;
   }
 
-  // Analysis of collected mood data
-  if(logs.length>=3){
-    // find hottest hours
-    const hourCounts=new Array(24).fill(0);
-    logs.filter(l=>l.mood==='cry'||l.mood==='fussy').forEach(l=>hourCounts[parseInt(l.time.split(':')[0])]++);
-    const maxH=Math.max(...hourCounts);
-    const hotHours=hourCounts.map((c,i)=>({h:i,c})).filter(x=>x.c===maxH&&x.c>0);
-    const nightEvents=logs.filter(l=>{const h=+l.time.split(':')[0];return(h>=22||h<6)&&(l.mood==='cry'||l.mood==='fussy');}).length;
+  // Analysis
+  if (logs.length>=3) {
+    const hc=new Array(24).fill(0);
+    logs.filter(l=>l.mood==='cry'||l.mood==='fussy').forEach(l=>hc[parseInt(l.time.split(':')[0])]++);
+    const mx=Math.max(...hc);
+    const hot=hc.map((c,i)=>({h:i,c})).filter(x=>x.c===mx&&x.c>0);
+    const nightBad=logs.filter(l=>{const h=+l.time.split(':')[0];return(h>=22||h<6)&&(l.mood==='cry'||l.mood==='fussy');}).length;
     let txt='';
-    if(hotHours.length)txt+=`Khung giờ bé hay khó chịu nhất: <b>${hotHours.map(x=>x.h+'h').join(', ')}</b>. `;
-    if(nightEvents>0)txt+=`🌙 Có <b>${nightEvents} lần</b> khó chịu ban đêm (22h–6h). `;
-    if(cries>2)txt+=`⚠️ Bé khóc nhiều hôm nay (${cries} lần) — kiểm tra xem bé có đói, đau bụng, hoặc mọc răng không.`;
+    if(hot.length) txt+=`Giờ bé hay khó chịu nhất: <b>${hot.map(x=>x.h+'h').join(', ')}</b>. `;
+    if(nightBad>0) txt+=`🌙 Có <b>${nightBad} lần</b> khó chịu ban đêm (22h–6h). `;
+    if(cries>2) txt+=`⚠️ Bé khóc nhiều (${cries} lần) — kiểm tra đói, đau bụng, mọc răng.`;
     document.getElementById('moodIns').innerHTML=`<h4>🕐 Phân tích khung giờ</h4><p>${txt||'Tiếp tục ghi nhận để xác định khung giờ bé hay khó chịu.'}</p>`;
   }
 
   // Timeline
-  const tl=document.getElementById('moodTL');
-  if(!logs.length){tl.innerHTML='<div class="empty"><div class="ei">😴</div><p>Chưa có ghi nhận trạng thái<br><small>Nhấn <b>+</b> góc phải để thêm</small></p></div>';return;}
+  const tl = document.getElementById('moodTL');
+  if(!logs.length){tl.innerHTML='<div class="empty"><div class="ei">😴</div><p>Chưa có ghi nhận<br><small>Nhấn <b>+</b> góc phải</small></p></div>';return;}
   const MI={cry:'😭',fussy:'😤',ok:'😊',active:'🌙'};
   const ML={cry:'Khóc nhiều',fussy:'Quấy nhẹ',ok:'Ổn định',active:'Thức đêm'};
-  tl.innerHTML=[...logs].reverse().map(l=>`<div class="tl-item"><div class="tl-ic mood">${MI[l.mood]||'😶'}</div><div class="tl-body"><div class="tl-time">${l.time}</div><div class="tl-desc">${ML[l.mood]||l.mood} · ${l.dur} phút</div>${l.note?`<div class="tl-note">📝 ${l.note}</div>`:''}</div><button class="tl-del" onclick="delMood(${l.id})">✕</button></div>`).join('');
+  tl.innerHTML=[...logs].reverse().map(l=>`
+    <div class="tl-item">
+      <div class="tl-ic mood">${MI[l.mood]||'😶'}</div>
+      <div class="tl-body">
+        <div class="tl-time">${l.time} ${authorBadge(l.by)}</div>
+        <div class="tl-desc">${ML[l.mood]||l.mood} · ${l.dur} phút</div>
+        ${l.note?`<div class="tl-note">📝 ${l.note}</div>`:''}
+      </div>
+      <button class="tl-del" onclick="delMood(${l.id})">✕</button>
+    </div>`).join('');
 }
 
-/* ===== RENDER ANALYSIS ===== */
-function renderAnalysis(day){
-  const ml=day.milk||[],tl=day.toilet||[];
-  const total=ml.reduce((s,l)=>s+l.amount,0),feeds=ml.length;
+/* ════════════════════════════════════════
+   RENDER ANALYSIS
+════════════════════════════════════════ */
+function renderAnalysis(day) {
+  const ml=day.milk||[], tl=day.toilet||[];
+  const total=ml.reduce((s,l)=>s+l.amount,0), feeds=ml.length;
   const pees=tl.filter(l=>l.type==='pee'||l.type==='both').length;
-  const mo=getMonths();
-  const ref=mo!==null?MILK[Math.min(mo,11)]:null;
-  const dr=mo!==null?DIAP[Math.min(mo,11)]:null;
+  const mo=getMonths(), ref=mo!==null?MILK_REF[Math.min(mo,11)]:null, dr=mo!==null?DIAP_REF[Math.min(mo,11)]:null;
   if(!ref||feeds===0){setScore(null,'Cần thêm dữ liệu');document.getElementById('anaCard').innerHTML='<div class="card-hd"><span class="dot"></span>Tổng quan</div><div class="empty"><div class="ei">📊</div><p>Nhập ngày sinh và ghi nhận ít nhất 1 cữ bú</p></div>';return;}
   let score=100;const warns=[],tips=[];
   const[mMin,mMax]=ref.ml,[fMin,fMax]=ref.f;
-  if(total<mMin*.7){score-=20;warns.push({l:'b',t:`🚨 Tổng sữa ${total}ml — thấp hơn nhiều mức tối thiểu ${mMin}ml`});}
+  if(total<mMin*.7){score-=20;warns.push({l:'b',t:`🚨 Tổng sữa ${total}ml — thấp hơn nhiều tối thiểu ${mMin}ml`});}
   else if(total<mMin){score-=10;warns.push({l:'w',t:`⚠️ Tổng sữa ${total}ml chưa đạt tối thiểu ${mMin}ml`});}
   if(feeds<fMin){score-=10;tips.push(`🍼 Tăng lên ít nhất ${fMin} cữ/ngày`);}
-  if(feeds>fMax+2){score-=5;tips.push('📅 Số cữ hơi nhiều — thử kéo dài khoảng cách dần dần');}
-  if(dr&&pees<dr.pMin){score-=15;warns.push({l:'b',t:`🚨 Tè chỉ ${pees} lần, cần ≥${dr.pMin} — bé có thể bú chưa đủ`});}
-  if(tl.some(l=>l.color==='red'||l.color==='white')){score-=30;warns.push({l:'b',t:'🚨 Phân màu bất thường — đến gặp bác sĩ ngay!'});}
+  if(feeds>fMax+2){score-=5;tips.push('📅 Số cữ hơi nhiều — thử kéo dài khoảng cách dần');}
+  if(dr&&pees<dr.pMin){score-=15;warns.push({l:'b',t:`🚨 Tè chỉ ${pees} lần, cần ≥${dr.pMin}`});}
+  if(tl.some(l=>l.color==='red'||l.color==='white')){score-=30;warns.push({l:'b',t:'🚨 Phân màu bất thường — gặp bác sĩ ngay!'});}
   score=Math.max(0,Math.min(100,score));
   const lb=score>=80?'Xuất sắc! Bé hôm nay rất tốt 🎉':score>=60?'Khá tốt, tiếp tục theo dõi':score>=40?'Cần chú ý thêm':'Cần kiểm tra, tham khảo bác sĩ';
   setScore(score,lb);
-  document.getElementById('anaCard').innerHTML=`<div class="card-hd"><span class="dot"></span>Tổng quan</div><div class="s-grid"><div class="sbox c-o"><div class="sv">${total}</div><div class="su">ml · ${feeds} cữ</div><div class="sl">Chuẩn ${mMin}–${mMax}ml</div></div><div class="sbox c-m"><div class="sv">${pees}</div><div class="su">lần tè</div><div class="sl">Cần ≥${dr?dr.pMin:6} lần/ngày</div></div></div>`;
+  document.getElementById('anaCard').innerHTML=`<div class="card-hd"><span class="dot"></span>Tổng quan</div><div class="s-grid"><div class="sbox c-o"><div class="sv">${total}</div><div class="su">ml · ${feeds} cữ</div><div class="sl">Chuẩn ${mMin}–${mMax}ml</div></div><div class="sbox c-m"><div class="sv">${pees}</div><div class="su">lần tè</div><div class="sl">Cần ≥${dr?dr.pMin:6}/ngày</div></div></div>`;
   const wb=document.getElementById('warnBox');
   wb.innerHTML=warns.length?warns.map(w=>`<div style="padding:9px 12px;border-radius:var(--r-sm);margin-bottom:7px;font-size:.82rem;font-weight:600;background:${w.l==='b'?'var(--red-bg)':'var(--amber-bg)'};color:${w.l==='b'?'var(--red)':'#B45309'};border:1px solid ${w.l==='b'?'#FECACA':'#FDE68A'}">${w.t}</div>`).join(''):'<div style="padding:9px 12px;border-radius:var(--r-sm);background:var(--mint-bg);color:#059669;font-size:.82rem;font-weight:700;border:1px solid #A7F3D0">✅ Không có dấu hiệu bất thường hôm nay!</div>';
   if(!tips.length)tips.push('✨ Tiếp tục duy trì lịch bú!');
@@ -1222,47 +1520,209 @@ function renderAnalysis(day){
   document.getElementById('tipsBox').innerHTML=tips.map(t=>`<div style="padding:9px 11px;border-radius:var(--r-sm);margin-bottom:7px;font-size:.82rem;color:var(--t2);background:var(--surface2);border:1px solid var(--border)">${t}</div>`).join('');
 }
 
-/* ===== SCORE RING ===== */
-function setScore(v,lb){
-  const circ=2*Math.PI*46,f=document.getElementById('rFill');
+/* ════════════════════════════════════════
+   DIARY CALENDAR (NEW)
+════════════════════════════════════════ */
+function initCal() {
+  const now = new Date();
+  calYear = now.getFullYear();
+  calMonth = now.getMonth(); // 0-indexed
+}
+
+function calShift(n) {
+  calMonth += n;
+  if (calMonth > 11) { calMonth=0; calYear++; }
+  if (calMonth < 0)  { calMonth=11; calYear--; }
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const lbl = new Date(calYear, calMonth, 1).toLocaleDateString('vi-VN', {month:'long', year:'numeric'});
+  document.getElementById('calMonthLbl').textContent = lbl.charAt(0).toUpperCase()+lbl.slice(1);
+
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+
+  // Day of week headers
+  ['CN','T2','T3','T4','T5','T6','T7'].forEach(d=>{
+    const el=document.createElement('div'); el.className='cal-dow'; el.textContent=d;
+    grid.appendChild(el);
+  });
+
+  const firstDay = new Date(calYear, calMonth, 1).getDay(); // 0=Sun
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+
+  // Empty cells before first day
+  for (let i=0;i<firstDay;i++) {
+    const el=document.createElement('div'); el.className='cal-day empty'; grid.appendChild(el);
+  }
+
+  for (let d=1; d<=daysInMonth; d++) {
+    const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayData = DB[dateStr];
+    const hasMilk  = dayData && dayData.milk   && dayData.milk.length > 0;
+    const hasToilet = dayData && dayData.toilet && dayData.toilet.length > 0;
+    const hasMood  = dayData && dayData.mood   && dayData.mood.length > 0;
+    const hasData  = hasMilk || hasToilet || hasMood;
+
+    const el=document.createElement('div');
+    el.className='cal-day' + (hasData?' has-data':'') + (dateStr===todayStr?' today':'') + (dateStr===selectedCalDay?' selected':'');
+    el.innerHTML = `<span>${d}</span>`;
+    if (hasData) {
+      const dots = document.createElement('div'); dots.className='cal-dots';
+      if (hasMilk)   { const dot=document.createElement('div'); dot.className='cal-dot milk';   dots.appendChild(dot); }
+      if (hasToilet) { const dot=document.createElement('div'); dot.className='cal-dot toilet'; dots.appendChild(dot); }
+      if (hasMood)   { const dot=document.createElement('div'); dot.className='cal-dot mood';   dots.appendChild(dot); }
+      el.appendChild(dots);
+    }
+    el.onclick = () => showDiaryDay(dateStr);
+    grid.appendChild(el);
+  }
+
+  // Render detail if selected
+  if (selectedCalDay) showDiaryDay(selectedCalDay, false);
+}
+
+function showDiaryDay(dateStr, updateSelected=true) {
+  if (updateSelected) selectedCalDay = dateStr;
+  const [y,m,d] = dateStr.split('-').map(Number);
+  const dt = new Date(y, m-1, d);
+  const label = dt.toLocaleDateString('vi-VN', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+
+  const dayData = DB[dateStr] || { milk:[], toilet:[], mood:[] };
+  const ml = dayData.milk||[], tl=dayData.toilet||[], mo=dayData.mood||[];
+  const totalMl = ml.reduce((s,l)=>s+l.amount,0);
+  const feeds = ml.length;
+  const pees = tl.filter(l=>l.type==='pee'||l.type==='both').length;
+  const poops = tl.filter(l=>l.type==='poop'||l.type==='both').length;
+  const cries = mo.filter(l=>l.mood==='cry'||l.mood==='fussy').length;
+
+  // Score
+  const dob = getDob();
+  let score = null, scoreLabel = 'Không có dữ liệu', scoreCls = 'neutral';
+  if (dob && feeds > 0) {
+    const ms = new Date(dateStr+'T00:00:00') - new Date(dob+'T00:00:00');
+    const days = Math.floor(ms/86400000);
+    if (days >= 0) {
+      const mos = Math.min(Math.floor(days/30.44), 11);
+      const ref = MILK_REF[mos], dr = DIAP_REF[mos];
+      score = 100;
+      if (totalMl < ref.ml[0]*.7) score-=20;
+      else if (totalMl < ref.ml[0]) score-=10;
+      if (feeds < ref.f[0]) score-=10;
+      if (dr && pees < dr.pMin) score-=15;
+      score = Math.max(0, Math.min(100,score));
+      if (score>=80){ scoreLabel='Ngày tốt 🌟'; scoreCls='good'; }
+      else if(score>=60){ scoreLabel='Khá ổn 😊'; scoreCls='warn'; }
+      else { scoreLabel='Cần chú ý ⚠️'; scoreCls='bad'; }
+    }
+  }
+
+  // Authors who contributed this day
+  const authors = new Set([
+    ...ml.map(l=>l.by), ...tl.map(l=>l.by), ...mo.map(l=>l.by)
+  ].filter(Boolean));
+
+  const detail = document.getElementById('diaryDetail');
+  detail.innerHTML = `
+    <div class="diary-panel">
+      <div class="diary-date">📅 ${label}</div>
+      ${authors.size ? `<div class="diary-authors">${[...authors].map(a=>USERS[a]?`<div class="da-badge ${a}">${USERS[a].icon} ${USERS[a].name}</div>`:'').join('')}</div>` : ''}
+      <div class="diary-score ${scoreCls}">
+        <div class="ds-emoji">${score===null?'📊':score>=80?'🌟':score>=60?'😊':'😐'}</div>
+        <div>
+          <div style="font-weight:800;font-size:.88rem;color:var(--t1)">${score!==null?score+' điểm':''} ${scoreLabel}</div>
+          ${score!==null?`<div style="font-size:.72rem;color:var(--t2)">Đánh giá tổng hợp ngày này</div>`:''}
+        </div>
+      </div>
+      <div class="diary-summary">
+        <div class="ds-box"><div class="ds-val" style="color:var(--orange)">${totalMl}</div><div class="ds-lbl">ml sữa<br>${feeds} cữ</div></div>
+        <div class="ds-box"><div class="ds-val" style="color:var(--purple)">${pees}+${poops}</div><div class="ds-lbl">tè+ị<br>lần</div></div>
+        <div class="ds-box"><div class="ds-val" style="color:var(--indigo)">${cries}</div><div class="ds-lbl">lần khó<br>chịu</div></div>
+      </div>
+      ${ml.length ? `
+        <div style="font-size:.78rem;font-weight:700;color:var(--t2);margin-bottom:6px">🍼 Các cữ bú</div>
+        ${ml.map(l=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border2);font-size:.78rem">
+          <span>${l.time} · ${l.amount}ml${l.type==='mother'?` (~${l.minutes}ph)`:''}</span>
+          <span style="color:var(--t3)">${l.by&&USERS[l.by]?USERS[l.by].name.split(' ')[0]:''}</span>
+        </div>`).join('')}
+      `:'<div style="font-size:.78rem;color:var(--t3)">Không có ghi nhận sữa</div>'}
+      ${mo.length ? `
+        <div style="font-size:.78rem;font-weight:700;color:var(--t2);margin:10px 0 6px">😴 Trạng thái</div>
+        ${mo.map(l=>{const ML={cry:'😭 Khóc nhiều',fussy:'😤 Quấy nhẹ',ok:'😊 Ổn định',active:'🌙 Thức đêm'};return`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border2);font-size:.78rem"><span>${l.time} · ${ML[l.mood]||l.mood} (${l.dur}ph)</span><span style="color:var(--t3)">${l.by&&USERS[l.by]?USERS[l.by].name.split(' ')[0]:''}</span></div>`;}).join('')}
+      `:''}
+      <button onclick="jumpToDate('${dateStr}')" style="margin-top:14px;width:100%;padding:10px;border:1.5px solid var(--border);border-radius:var(--r-md);background:var(--surface2);font-family:var(--font);font-size:.82rem;font-weight:700;color:var(--t2);cursor:pointer">
+        📋 Xem chi tiết ngày này →
+      </button>
+    </div>`;
+
+  // Re-render calendar to update selected state
+  if (updateSelected) renderCalendar();
+}
+
+function jumpToDate(dateStr) {
+  cur = dateStr;
+  updDateDisp(); updAgePill(); renderAll();
+  switchTab('milk', document.querySelector('.nav-btn'));
+}
+
+/* ════════════════════════════════════════
+   SCORE RING
+════════════════════════════════════════ */
+function setScore(v,lb) {
+  const circ=2*Math.PI*46, f=document.getElementById('rFill');
   if(v===null){f.style.strokeDashoffset=circ;document.getElementById('sVal').textContent='—';document.getElementById('sVal').style.color='var(--t3)';document.getElementById('sLbl').textContent=lb;return;}
   f.style.strokeDashoffset=circ*(1-v/100);
   const c=v>=80?'var(--mint)':v>=60?'var(--orange)':'var(--red)';
   f.style.stroke=c;document.getElementById('sVal').textContent=v;document.getElementById('sVal').style.color=c;document.getElementById('sLbl').textContent=lb;
 }
-
-/* ===== PILL HELPER ===== */
 function setPill(id,t,txt){const e=document.getElementById(id);e.className=`s-pill pill-${t}`;e.textContent=txt;}
 
-/* ===== TABS ===== */
-function switchTab(name,btn){
+/* ════════════════════════════════════════
+   TABS
+════════════════════════════════════════ */
+function switchTab(name,btn) {
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('sec-'+name).classList.add('active');
-  btn.classList.add('active');
+  if(btn) btn.classList.add('active');
   window.scrollTo(0,0);
-  if(name==='knowledge')renderKnowledge();
-  if(name==='analysis')renderAnalysis(getDay(cur));
-  if(name==='mood'){renderMood(getDay(cur));}
+  if(name==='analysis') renderAnalysis(getDay(cur));
+  if(name==='diary') { initCal(); renderCalendar(); }
+  if(name==='mood') renderMood(getDay(cur));
 }
 
-/* ===== KNOWLEDGE ===== */
-function renderKnowledge(){
-  const mo=getMonths();
-  document.getElementById('mGrid').innerHTML=Object.entries(MILK).map(([m,r])=>{const c=mo!==null&&+m===Math.min(mo,11);return`<div class="mc ${c?'cur':''}"><h4>${+m===0?'Sơ sinh':m+' tháng'}${c?' 👈':''}</h4><div class="mv">${r.ml[0]}–${r.ml[1]}ml</div><div class="ms">${r.f[0]}–${r.f[1]} cữ/ngày</div><div class="ms">${r.mf[0]}–${r.mf[1]}ml/cữ</div></div>`;}).join('');
-  document.getElementById('faqList').innerHTML=FAQS.map((f,i)=>`<div class="faq-item"><div class="faq-hd" onclick="toggleFaq(${i},this)"><span>${f.q}</span><span class="faq-arr">▼</span></div><div class="faq-body" id="faq-${i}">${f.a}</div></div>`).join('');
-}
-function toggleFaq(i,hd){const b=document.getElementById('faq-'+i),o=b.classList.contains('open');document.querySelectorAll('.faq-body').forEach(x=>x.classList.remove('open'));document.querySelectorAll('.faq-hd').forEach(x=>x.classList.remove('open'));if(!o){b.classList.add('open');hd.classList.add('open');}}
-
-/* ===== TOAST ===== */
+/* ════════════════════════════════════════
+   TOAST
+════════════════════════════════════════ */
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 
-/* ===== INIT ===== */
+/* ════════════════════════════════════════
+   INIT
+════════════════════════════════════════ */
 (function init(){
-  updDateDisp();updAgePill();
+  // Check saved user
+  const saved = localStorage.getItem('by4_user');
+  if (saved && USERS[saved]) {
+    curUser = saved;
+    document.getElementById('userScreen').style.display = 'none';
+    updateUserBadge();
+    if (localMode) { loadLocalDB(); }
+    startFirebaseSync();
+    if (localMode) renderAll();
+  }
+  // else: userScreen stays visible
+
+  updDateDisp();
+  updAgePill();
   selMood('fussy');
   calcEstMl();
-  renderAll();
+  initCal();
+
+  // Load dob
+  if(getDob()) updAgePill();
 })();
 </script>
 </body>
