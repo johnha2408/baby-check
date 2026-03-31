@@ -479,20 +479,42 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;
 .empty p{font-size:.82rem;line-height:1.6}
 
 /* ── MODAL ── */
-.mod-ov{position:fixed;inset:0;z-index:700;background:rgba(28,10,0,.5);
-  backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center;
-  opacity:0;pointer-events:none;transition:opacity .2s}
+.mod-ov{
+  position:fixed;inset:0;z-index:700;
+  background:rgba(28,10,0,.5);
+  backdrop-filter:blur(3px);
+  display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
 .mod-ov.open{opacity:1;pointer-events:all}
-.mod-box{background:var(--surface);border-radius:24px 24px 0 0;
-  padding:0 20px calc(var(--sab)+24px);width:100%;max-width:480px;
-  transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1.2,.6,1);
-  max-height:80vh;overflow-y:auto}
+.mod-box{
+  background:var(--surface);
+  border-radius:24px 24px 0 0;
+  /* ★ FIX: top padding for handle, side padding, bottom safe area */
+  padding:0 20px calc(max(var(--sab),16px) + 8px);
+  width:100%;max-width:480px;
+  transform:translateY(100%);
+  transition:transform .32s cubic-bezier(.32,1.2,.6,1);
+  max-height:85vh;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
 .mod-ov.open .mod-box{transform:translateY(0)}
-.mod-inner{padding-top:20px}
-.mod-handle{width:36px;height:4px;border-radius:2px;background:var(--border);
-  margin:12px auto 0;display:block}
-.mod-title{font-size:1rem;font-weight:800;color:var(--t1);margin:16px 0 16px;
-  display:flex;align-items:center;gap:8px}
+/* ★ FIX: handle sits at very top with proper spacing */
+.mod-handle{
+  width:40px;height:4px;border-radius:2px;
+  background:var(--border);
+  /* centered horizontally, top margin gives breathing room */
+  margin:14px auto 18px;
+  display:block;
+  flex-shrink:0;
+}
+.mod-inner{/* no extra padding needed — handle provides spacing */}
+.mod-title{
+  font-size:1rem;font-weight:800;color:var(--t1);
+  margin:0 0 16px;
+  display:flex;align-items:center;gap:8px;
+}
 .mod-acts{display:flex;gap:10px;margin-top:16px}
 
 /* ── KNOWLEDGE SECTION ── */
@@ -640,7 +662,7 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;
   .sheet{max-width:520px;left:50%;right:auto;
     transform:translateX(-50%) translateY(100%)}
   .sheet.open{transform:translateX(-50%) translateY(0)}
-  .mod-box{max-width:520px}
+  .mod-box{max-width:520px;left:50%;right:auto;transform:translateX(-50%) translateY(100%)}
   .mod-ov.open .mod-box{transform:translateX(-50%) translateY(0)}
   .s-grid-4{grid-template-columns:repeat(4,1fr)}
 }
@@ -1026,13 +1048,14 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;
 <div class="mod-ov" id="dobMod" onclick="closeMod('dobMod',event)">
   <div class="mod-box">
     <span class="mod-handle"></span>
-    <div class="mod-inner">
-      <div class="mod-title">🎂 Ngày sinh của bé</div>
-      <div class="field"><label>Ngày sinh</label><input type="date" id="dobInp"></div>
-      <div class="mod-acts">
-        <button class="btn btn-ghost" style="flex:1" onclick="closeMod('dobMod')">Đóng</button>
-        <button class="btn btn-orange" style="flex:2" onclick="saveDob()">✅ Lưu</button>
-      </div>
+    <div class="mod-title">🎂 Ngày sinh của bé</div>
+    <div class="field">
+      <label>Ngày sinh</label>
+      <input type="date" id="dobInp">
+    </div>
+    <div class="mod-acts">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeMod('dobMod')">Đóng</button>
+      <button class="btn btn-orange" style="flex:2" onclick="saveDob()">✅ Lưu</button>
     </div>
   </div>
 </div>
@@ -1041,13 +1064,14 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;
 <div class="mod-ov" id="dateMod" onclick="closeMod('dateMod',event)">
   <div class="mod-box">
     <span class="mod-handle"></span>
-    <div class="mod-inner">
-      <div class="mod-title">📅 Chọn ngày theo dõi</div>
-      <div class="field"><label>Ngày</label><input type="date" id="dateInp"></div>
-      <div class="mod-acts">
-        <button class="btn btn-ghost" style="flex:1" onclick="closeMod('dateMod')">Đóng</button>
-        <button class="btn btn-orange" style="flex:2" onclick="applyDate()">Chọn ngày này</button>
-      </div>
+    <div class="mod-title">📅 Chọn ngày theo dõi</div>
+    <div class="field">
+      <label>Ngày</label>
+      <input type="date" id="dateInp">
+    </div>
+    <div class="mod-acts">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeMod('dateMod')">Đóng</button>
+      <button class="btn btn-orange" style="flex:2" onclick="applyDate()">Chọn ngày này</button>
     </div>
   </div>
 </div>
