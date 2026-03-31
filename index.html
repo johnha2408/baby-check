@@ -1062,6 +1062,11 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;
     <div class="sh-mode-badge edit-mode">✏️ Chỉnh sửa cữ bú</div>
     <div class="sh-title" style="margin-bottom:12px">🍼 Sửa thông tin cữ bú</div>
     <input type="hidden" id="editMilkId">
+    <input type="hidden" id="editMilkDate">
+    <div class="field">
+      <label>📅 Ngày ghi nhận (sửa nếu ghi nhầm ngày)</label>
+      <input type="date" id="editMDate" style="font-size:.92rem">
+    </div>
 
     <div class="field"><label>Loại sữa</label>
       <div class="type-toggle">
@@ -1125,6 +1130,11 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;
     <div class="sh-mode-badge edit-mode">✏️ Chỉnh sửa vệ sinh</div>
     <div class="sh-title" style="margin-bottom:12px">🚼 Sửa ghi nhận vệ sinh</div>
     <input type="hidden" id="editToiletId">
+    <input type="hidden" id="editToiletDate">
+    <div class="field">
+      <label>📅 Ngày ghi nhận (sửa nếu ghi nhầm ngày)</label>
+      <input type="date" id="editTDate" style="font-size:.92rem">
+    </div>
     <div class="f-row">
       <div class="field"><label>Giờ</label><input type="time" id="editTTime"></div>
       <div class="field"><label>Loại</label>
@@ -1174,6 +1184,11 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;
     <div class="sh-mode-badge edit-mode">✏️ Chỉnh sửa trạng thái</div>
     <div class="sh-title" style="margin-bottom:12px">😴 Sửa ghi nhận trạng thái</div>
     <input type="hidden" id="editMoodId">
+    <input type="hidden" id="editMoodDate">
+    <div class="field">
+      <label>📅 Ngày ghi nhận (sửa nếu ghi nhầm ngày)</label>
+      <input type="date" id="editMoDate" style="font-size:.92rem">
+    </div>
     <div class="field"><label>Giờ xảy ra</label><input type="time" id="editMoTime"></div>
     <div class="field">
       <label>Trạng thái bé</label>
@@ -1581,7 +1596,7 @@ function addMilk() {
 
   const day = getDay(cur);
   if (!Array.isArray(day.milk)) day.milk = [];
-  const entry = { time, amount, type:milkType, note, id:Date.now(), minutes, side, by:(curUser||'ba') };
+  const entry = { time, amount, type:milkType, note, id:Date.now(), minutes, side, by:(curUser||'ba'), date:cur };
   day.milk.push(entry);
   day.milk.sort((a,b)=>a.time.localeCompare(b.time));
   save(cur);
@@ -1607,7 +1622,7 @@ function addToilet() {
   if (!time) { showToast('⏰ Vui lòng nhập giờ'); return; }
 
   const day = getDay(cur);
-  const entry = { time, type, color, texture, note, id:Date.now(), by:(curUser||'ba') };
+  const entry = { time, type, color, texture, note, id:Date.now(), by:(curUser||'ba'), date:cur };
   if (!Array.isArray(day.toilet)) day.toilet = [];
   day.toilet.push(entry);
   day.toilet.sort((a,b)=>a.time.localeCompare(b.time));
@@ -1633,7 +1648,7 @@ function addMood() {
   if (!time) { showToast('⏰ Vui lòng nhập giờ'); return; }
 
   const day = getDay(cur);
-  const entry = { time, mood, dur, note, id:Date.now(), by:(curUser||'ba') };
+  const entry = { time, mood, dur, note, id:Date.now(), by:(curUser||'ba'), date:cur };
   if (!Array.isArray(day.mood)) day.mood = [];
   day.mood.push(entry);
   day.mood.sort((a,b)=>a.time.localeCompare(b.time));
@@ -1647,9 +1662,34 @@ function addMood() {
 /* ════════════════════════════════════════
    DELETE
 ════════════════════════════════════════ */
-function delMilk(id) { const d=getDay(cur); d.milk=d.milk.filter(l=>l.id!==id); save(cur); renderAll(); }
-function delToilet(id) { const d=getDay(cur); d.toilet=d.toilet.filter(l=>l.id!==id); save(cur); renderAll(); }
-function delMood(id) { const d=getDay(cur); d.mood=d.mood.filter(l=>l.id!==id); save(cur); renderAll(); }
+/* ── Delete with date param (fixes cross-day delete) ── */
+function delMilk(id, date) {
+  const targetDate = date || cur;
+  if (!confirm('Xoá cữ bú này?')) return;
+  const d = getDay(targetDate);
+  d.milk = d.milk.filter(l => l.id !== id);
+  save(targetDate);
+  renderAll();
+  showToast('🗑️ Đã xoá cữ bú');
+}
+function delToilet(id, date) {
+  const targetDate = date || cur;
+  if (!confirm('Xoá ghi nhận vệ sinh này?')) return;
+  const d = getDay(targetDate);
+  d.toilet = d.toilet.filter(l => l.id !== id);
+  save(targetDate);
+  renderAll();
+  showToast('🗑️ Đã xoá ghi nhận vệ sinh');
+}
+function delMood(id, date) {
+  const targetDate = date || cur;
+  if (!confirm('Xoá ghi nhận trạng thái này?')) return;
+  const d = getDay(targetDate);
+  d.mood = d.mood.filter(l => l.id !== id);
+  save(targetDate);
+  renderAll();
+  showToast('🗑️ Đã xoá ghi nhận trạng thái');
+}
 
 /* ════════════════════════════════════════
    RENDER ALL
@@ -1734,20 +1774,22 @@ function renderMilk(day) {
   const TLN = {mother:'Bú mẹ trực tiếp',expressed:'Sữa mẹ vắt',formula:'Sữa công thức'};
   const SD = {left:'Trái',right:'Phải',both:'Hai bên'};
   tl.innerHTML = [...logs].reverse().map(l=>{
+    const lDate = l.date || cur;
     let desc = `${l.amount}ml`;
     if (l.type==='mother') desc += ` (~${l.minutes||'?'}ph)`;
     desc += ` · ${TLN[l.type]||l.type}`;
     if (l.side && l.type==='mother') desc += ` · ${SD[l.side]||''}`;
-    return `<div class="tl-item" onclick="editMilk(${l.id})">
+    return `<div class="tl-item" onclick="editMilk(${l.id},'${lDate}')">
       <div class="tl-ic milk">🍼</div>
       <div class="tl-body">
         <div class="tl-time">${l.time} ${authorBadge(l.by)}</div>
         <div class="tl-desc">${desc}</div>
+        ${l.date && l.date!==cur?`<div class="tl-note" style="color:var(--indigo)">📅 Ngày: ${l.date}</div>`:''}
         ${l.note?`<div class="tl-note">📝 ${l.note}</div>`:''}
       </div>
       <div class="tl-actions">
-        <button class="tl-edit" onclick="event.stopPropagation();editMilk(${l.id})">✏️</button>
-        <button class="tl-del" onclick="event.stopPropagation();delMilk(${l.id})">✕</button>
+        <button class="tl-edit" onclick="event.stopPropagation();editMilk(${l.id},'${lDate}')">✏️</button>
+        <button class="tl-del" onclick="event.stopPropagation();delMilk(${l.id},'${lDate}')">✕</button>
       </div>
     </div>`;
   }).join('');
@@ -1777,20 +1819,22 @@ function renderToilet(day) {
   const TI={pee:'💧',poop:'💩',both:'💧💩'}, TL2={pee:'Đi tè',poop:'Đi ị',both:'Tè + ị'};
   const CL={normal:'🟡 Vàng BT',green:'🟢 Xanh',brown:'🟤 Nâu',black:'⚫ Đen',red:'🔴 Đỏ/máu ⚠️',white:'⚪ Trắng ⚠️'};
   const TX={normal:'BT',loose:'Lỏng',watery:'Toé nước',hard:'Cứng',mucus:'Có nhầy'};
-  tl.innerHTML = [...logs].reverse().map(l=>`
-    <div class="tl-item" onclick="editToilet(${l.id})">
+  tl.innerHTML = [...logs].reverse().map(l=>{
+    const lDate = l.date || cur;
+    return `<div class="tl-item" onclick="editToilet(${l.id},'${lDate}')">
       <div class="tl-ic ${l.type==='pee'?'pee':'poop'}">${TI[l.type]||'🚼'}</div>
       <div class="tl-body">
         <div class="tl-time">${l.time} ${authorBadge(l.by)}</div>
         <div class="tl-desc">${TL2[l.type]||l.type}</div>
         ${(l.type==='poop'||l.type==='both')?`<div class="tl-note">${CL[l.color]||''} · ${TX[l.texture]||''}</div>`:''}
+        ${l.date && l.date!==cur?`<div class="tl-note" style="color:var(--indigo)">📅 Ngày: ${l.date}</div>`:''}
         ${l.note?`<div class="tl-note">📝 ${l.note}</div>`:''}
       </div>
       <div class="tl-actions">
-        <button class="tl-edit" onclick="event.stopPropagation();editToilet(${l.id})">✏️</button>
-        <button class="tl-del" onclick="event.stopPropagation();delToilet(${l.id})">✕</button>
+        <button class="tl-edit" onclick="event.stopPropagation();editToilet(${l.id},'${lDate}')">✏️</button>
+        <button class="tl-del" onclick="event.stopPropagation();delToilet(${l.id},'${lDate}')">✕</button>
       </div>
-    </div>`).join('');
+    </div>`; }).join('');
 }
 
 /* ════════════════════════════════════════
@@ -1915,19 +1959,21 @@ function renderMood(day) {
   if(!logs.length){tl.innerHTML='<div class="empty"><div class="ei">😴</div><p>Chưa có ghi nhận<br><small>Nhấn <b>+</b> góc phải</small></p></div>';return;}
   const MI={cry:'😭',fussy:'😤',ok:'😊',active:'🌙'};
   const ML={cry:'Khóc nhiều',fussy:'Quấy nhẹ',ok:'Ổn định',active:'Thức đêm'};
-  tl.innerHTML=[...logs].reverse().map(l=>`
-    <div class="tl-item" onclick="editMood(${l.id})">
+  tl.innerHTML=[...logs].reverse().map(l=>{
+    const lDate = l.date || cur;
+    return `<div class="tl-item" onclick="editMood(${l.id},'${lDate}')">
       <div class="tl-ic mood">${MI[l.mood]||'😶'}</div>
       <div class="tl-body">
         <div class="tl-time">${l.time} ${authorBadge(l.by)}</div>
         <div class="tl-desc">${ML[l.mood]||l.mood} · ${l.dur} phút</div>
+        ${l.date && l.date!==cur?`<div class="tl-note" style="color:var(--indigo)">📅 Ngày: ${l.date}</div>`:''}
         ${l.note?`<div class="tl-note">📝 ${l.note}</div>`:''}
       </div>
       <div class="tl-actions">
-        <button class="tl-edit" onclick="event.stopPropagation();editMood(${l.id})">✏️</button>
-        <button class="tl-del" onclick="event.stopPropagation();delMood(${l.id})">✕</button>
+        <button class="tl-edit" onclick="event.stopPropagation();editMood(${l.id},'${lDate}')">✏️</button>
+        <button class="tl-del" onclick="event.stopPropagation();delMood(${l.id},'${lDate}')">✕</button>
       </div>
-    </div>`).join('');
+    </div>`;}).join('');
 }
 
 /* ════════════════════════════════════════
@@ -2556,13 +2602,45 @@ function clearEditChips() {
   document.querySelectorAll('#editMlChips .ml-chip').forEach(c => c.classList.remove('sel'));
 }
 
-function editMilk(id) {
-  const day = getDay(cur);
-  const log = day.milk.find(l => l.id === id);
-  if (!log) return;
-  document.getElementById('editMilkId').value = id;
-  document.getElementById('editMTime').value  = log.time;
-  document.getElementById('editMNote').value  = log.note || '';
+/* ─── Helper: move entry from one date to another ─── */
+function moveEntry(type, id, fromDate, toDate) {
+  if (fromDate === toDate) return; // same date, no move needed
+  const src = getDay(fromDate);
+  const dst = getDay(toDate);
+  const entry = src[type].find(l => l.id === id);
+  if (!entry) return;
+  entry.date = toDate;
+  src[type] = src[type].filter(l => l.id !== id);
+  dst[type].push(entry);
+  dst[type].sort((a,b) => a.time.localeCompare(b.time));
+  save(fromDate);
+  save(toDate);
+}
+
+/* ─── Search entry across all dates ─── */
+function findEntry(type, id, hintDate) {
+  // Try hint date first (fast path)
+  const hintDay = getDay(hintDate || cur);
+  const found = hintDay[type].find(l => l.id === id);
+  if (found) return { entry: found, date: hintDate || cur };
+  // Search all dates
+  for (const [date, day] of Object.entries(DB)) {
+    const e = (day[type]||[]).find(l => l.id === id);
+    if (e) return { entry: e, date };
+  }
+  return null;
+}
+
+/* ─────────── MILK EDIT ─────────── */
+function editMilk(id, hintDate) {
+  const found = findEntry('milk', id, hintDate);
+  if (!found) { showToast('Không tìm thấy bản ghi'); return; }
+  const { entry: log, date: origDate } = found;
+  document.getElementById('editMilkId').value   = id;
+  document.getElementById('editMilkDate').value = origDate;   // ★ original date
+  document.getElementById('editMTime').value    = log.time;
+  document.getElementById('editMDate').value    = origDate;   // ★ editable date
+  document.getElementById('editMNote').value    = log.note || '';
   selectEditMilkType(log.type || 'mother');
   if ((log.type||'mother') === 'mother') {
     const mins = log.minutes || 15;
@@ -2579,10 +2657,13 @@ function editMilk(id) {
 }
 
 function saveEditMilk() {
-  const id   = parseInt(document.getElementById('editMilkId').value);
-  const time = document.getElementById('editMTime').value;
-  const note = document.getElementById('editMNote').value.trim();
+  const id       = parseInt(document.getElementById('editMilkId').value);
+  const origDate = document.getElementById('editMilkDate').value || cur;
+  const newDate  = document.getElementById('editMDate').value || origDate;
+  const time     = document.getElementById('editMTime').value;
+  const note     = document.getElementById('editMNote').value.trim();
   if (!time) { showToast('⏰ Vui lòng nhập giờ'); return; }
+
   let amount, minutes = null;
   if (editMilkType === 'mother') {
     minutes = parseInt(document.getElementById('editMinSlider').value)||15;
@@ -2593,13 +2674,22 @@ function saveEditMilk() {
   }
   const sideEl = document.getElementById('editMSide');
   const side   = (editMilkType==='mother' && sideEl) ? sideEl.value : null;
-  const day = getDay(cur);
+
+  // ★ If date changed: move entry to new date
+  if (newDate !== origDate) moveEntry('milk', id, origDate, newDate);
+
+  const targetDate = newDate;
+  const day = getDay(targetDate);
   const idx = day.milk.findIndex(l => l.id === id);
-  if (idx < 0) { showToast('Không tìm thấy bản ghi'); return; }
-  day.milk[idx] = { ...day.milk[idx], time, amount, type:editMilkType, note, minutes, side };
+  if (idx < 0) { showToast('Lỗi: không tìm thấy'); return; }
+  day.milk[idx] = { ...day.milk[idx], time, amount, type:editMilkType, note, minutes, side, date:newDate };
   day.milk.sort((a,b) => a.time.localeCompare(b.time));
-  save(cur); closeEditSheet('milk'); renderAll();
-  showToast('✅ Đã cập nhật ' + amount + 'ml lúc ' + time);
+  save(targetDate);
+  closeEditSheet('milk');
+  // Switch view to new date if changed
+  if (newDate !== cur) { cur = newDate; updDateDisp(); updAgePill(); }
+  renderAll();
+  showToast('✅ Cập nhật ' + amount + 'ml · ngày ' + newDate);
 }
 
 /* ─────────── TOILET EDIT ─────────── */
@@ -2608,13 +2698,15 @@ function toggleEditPoop() {
   document.getElementById('editPoopF').style.display = t==='pee' ? 'none' : 'block';
 }
 
-function editToilet(id) {
-  const day = getDay(cur);
-  const log = day.toilet.find(l => l.id === id);
-  if (!log) return;
-  document.getElementById('editToiletId').value = id;
-  document.getElementById('editTTime').value    = log.time;
-  document.getElementById('editTNote').value    = log.note || '';
+function editToilet(id, hintDate) {
+  const found = findEntry('toilet', id, hintDate);
+  if (!found) { showToast('Không tìm thấy bản ghi'); return; }
+  const { entry: log, date: origDate } = found;
+  document.getElementById('editToiletId').value   = id;
+  document.getElementById('editToiletDate').value = origDate;
+  document.getElementById('editTDate').value      = origDate;
+  document.getElementById('editTTime').value      = log.time;
+  document.getElementById('editTNote').value      = log.note || '';
   const typeEl = document.getElementById('editTType');
   if (typeEl) typeEl.value = log.type || 'pee';
   const colorEl = document.getElementById('editTColor');
@@ -2626,21 +2718,29 @@ function editToilet(id) {
 }
 
 function saveEditToilet() {
-  const id      = parseInt(document.getElementById('editToiletId').value);
-  const time    = document.getElementById('editTTime').value;
-  const type    = document.getElementById('editTType').value;
-  const color   = document.getElementById('editTColor').value;
-  const texture = document.getElementById('editTTex').value;
-  const note    = document.getElementById('editTNote').value.trim();
+  const id       = parseInt(document.getElementById('editToiletId').value);
+  const origDate = document.getElementById('editToiletDate').value || cur;
+  const newDate  = document.getElementById('editTDate').value || origDate;
+  const time     = document.getElementById('editTTime').value;
+  const type     = document.getElementById('editTType').value;
+  const color    = document.getElementById('editTColor').value;
+  const texture  = document.getElementById('editTTex').value;
+  const note     = document.getElementById('editTNote').value.trim();
   if (!time) { showToast('⏰ Vui lòng nhập giờ'); return; }
-  const day = getDay(cur);
+
+  if (newDate !== origDate) moveEntry('toilet', id, origDate, newDate);
+
+  const day = getDay(newDate);
   const idx = day.toilet.findIndex(l => l.id === id);
-  if (idx < 0) { showToast('Không tìm thấy bản ghi'); return; }
-  day.toilet[idx] = { ...day.toilet[idx], time, type, color, texture, note };
+  if (idx < 0) { showToast('Lỗi: không tìm thấy'); return; }
+  day.toilet[idx] = { ...day.toilet[idx], time, type, color, texture, note, date:newDate };
   day.toilet.sort((a,b) => a.time.localeCompare(b.time));
-  save(cur); closeEditSheet('toilet'); renderAll();
-  const lb = {pee:'Đi tè 💧',poop:'Đi ị 💩',both:'Tè + ị 💧💩'};
-  showToast('✅ Đã cập nhật ' + (lb[type]||type) + ' lúc ' + time);
+  save(newDate);
+  closeEditSheet('toilet');
+  if (newDate !== cur) { cur = newDate; updDateDisp(); updAgePill(); }
+  renderAll();
+  const lb = {pee:'Đi tè 💧', poop:'Đi ị 💩', both:'Tè + ị 💧💩'};
+  showToast('✅ Cập nhật ' + (lb[type]||type) + ' · ngày ' + newDate);
   if (color==='red'||color==='white') setTimeout(()=>showToast('⚠️ Phân màu bất thường!'),2400);
 }
 
@@ -2656,33 +2756,43 @@ function selEditMood(m) {
   });
 }
 
-function editMood(id) {
-  const day = getDay(cur);
-  const log = day.mood.find(l => l.id === id);
-  if (!log) return;
-  document.getElementById('editMoodId').value  = id;
-  document.getElementById('editMoTime').value  = log.time;
-  document.getElementById('editMoDur').value   = log.dur || 15;
-  document.getElementById('editMoNote').value  = log.note || '';
+function editMood(id, hintDate) {
+  const found = findEntry('mood', id, hintDate);
+  if (!found) { showToast('Không tìm thấy bản ghi'); return; }
+  const { entry: log, date: origDate } = found;
+  document.getElementById('editMoodId').value   = id;
+  document.getElementById('editMoodDate').value = origDate;
+  document.getElementById('editMoDate').value   = origDate;
+  document.getElementById('editMoTime').value   = log.time;
+  document.getElementById('editMoDur').value    = log.dur || 15;
+  document.getElementById('editMoNote').value   = log.note || '';
   selEditMood(log.mood || 'fussy');
   openEditSheet('mood');
 }
 
 function saveEditMood() {
-  const id   = parseInt(document.getElementById('editMoodId').value);
-  const time = document.getElementById('editMoTime').value;
-  const dur  = parseInt(document.getElementById('editMoDur').value)||15;
-  const note = document.getElementById('editMoNote').value.trim();
-  const mood = editMoodVal || 'fussy';
+  const id       = parseInt(document.getElementById('editMoodId').value);
+  const origDate = document.getElementById('editMoodDate').value || cur;
+  const newDate  = document.getElementById('editMoDate').value || origDate;
+  const time     = document.getElementById('editMoTime').value;
+  const dur      = parseInt(document.getElementById('editMoDur').value)||15;
+  const note     = document.getElementById('editMoNote').value.trim();
+  const mood     = editMoodVal || 'fussy';
   if (!time) { showToast('⏰ Vui lòng nhập giờ'); return; }
-  const day = getDay(cur);
+
+  if (newDate !== origDate) moveEntry('mood', id, origDate, newDate);
+
+  const day = getDay(newDate);
   const idx = day.mood.findIndex(l => l.id === id);
-  if (idx < 0) { showToast('Không tìm thấy bản ghi'); return; }
-  day.mood[idx] = { ...day.mood[idx], time, mood, dur, note };
+  if (idx < 0) { showToast('Lỗi: không tìm thấy'); return; }
+  day.mood[idx] = { ...day.mood[idx], time, mood, dur, note, date:newDate };
   day.mood.sort((a,b) => a.time.localeCompare(b.time));
-  save(cur); closeEditSheet('mood'); renderAll();
+  save(newDate);
+  closeEditSheet('mood');
+  if (newDate !== cur) { cur = newDate; updDateDisp(); updAgePill(); }
+  renderAll();
   const lb = {cry:'Khóc nhiều 😭',fussy:'Quấy nhẹ 😤',ok:'Ổn định 😊',active:'Thức đêm 🌙'};
-  showToast('✅ Đã cập nhật: ' + (lb[mood]||mood) + ' lúc ' + time);
+  showToast('✅ Cập nhật ' + (lb[mood]||mood) + ' · ngày ' + newDate);
 }
 
 /* ════════════════════════════════════════
